@@ -15,7 +15,7 @@ input{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;ma
 @media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}.hero{align-items:start;flex-direction:column}.top{padding:12px 14px}main{padding:15px}.orderhead{flex-direction:column}}
 /* NaGo UX polish */.btn,.detail-btn{min-height:42px}.btn:active,.detail-btn:active{transform:translateY(1px)}.hero{gap:14px}.section-note{white-space:nowrap}.tabs{position:sticky;top:68px;z-index:2;background:var(--bg);padding:8px 0;margin:8px 0}.tab{min-height:40px}.order{border-left:4px solid #dfe9e6}.order .actions{margin-top:10px}.order .actions .btn,.order .actions .detail-btn{flex:1 1 130px}@media(max-width:700px){.hero .actions{width:100%}.hero .actions .btn{flex:1}.tabs{top:60px;overflow-x:auto;flex-wrap:nowrap}.tabs .tab{white-space:nowrap}.section>summary{min-height:48px}.section-body{padding-left:12px;padding-right:12px}}
 /* NaGo bottom control bar */
-body{padding-bottom:82px}.nago-bottom-nav{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);width:min(720px,calc(100% - 20px));background:#102A43f2;border:1px solid #ffffff22;border-radius:18px;padding:7px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;z-index:100;box-shadow:0 10px 30px #102A4340;backdrop-filter:blur(10px)}.nago-bottom-nav button{border:0;background:transparent;color:#dce7ec;border-radius:12px;min-height:54px;font-weight:700;font-size:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer}.nago-bottom-nav button b{font-size:19px;line-height:1}.nago-bottom-nav button.active{background:#00BFA6;color:#fff}.nago-bottom-nav button:active{transform:translateY(1px)}@media(min-width:900px){.nago-bottom-nav{width:600px}}.nago-bottom-nav button{position:relative}.nago-bottom-nav button span{display:flex;align-items:center;gap:5px;justify-content:center}.nago-bottom-nav .nav-count{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#E5484D;color:#fff;font-size:10px;font-style:normal;font-weight:800;line-height:18px}</style>
+body{padding-bottom:82px}.nago-bottom-nav{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);width:min(720px,calc(100% - 20px));background:#102A43f2;border:1px solid #ffffff22;border-radius:18px;padding:7px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;z-index:100;box-shadow:0 10px 30px #102A4340;backdrop-filter:blur(10px)}.nago-bottom-nav button{border:0;background:transparent;color:#dce7ec;border-radius:12px;min-height:54px;font-weight:700;font-size:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer}.nago-bottom-nav button b{font-size:19px;line-height:1}.nago-bottom-nav button.active{background:#00BFA6;color:#fff}.nago-bottom-nav button:active{transform:translateY(1px)}@media(min-width:900px){.nago-bottom-nav{width:600px}}.nago-bottom-nav button{position:relative}.nago-bottom-nav button span{display:flex;align-items:center;gap:5px;justify-content:center}.nago-bottom-nav .nav-count{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#E5484D;color:#fff;font-size:10px;font-style:normal;font-weight:800;line-height:18px}.nago-bottom-nav{grid-template-columns:repeat(4,1fr)}.nago-bottom-nav button span{font-size:11px}.nago-bottom-nav .nav-count{display:none}</style>
 </head>
 <body>
 <script>
@@ -27,7 +27,7 @@ function merchantHardLogout(){
 </script>
 <header><div class="top"><div class="brand"><div class="logo">N</div><div><b>NaGo Merchant</b><small>Trung tâm quản lý quán</small></div></div><button class="btn gray" onclick="merchantHardLogout()">Đăng xuất</button></div></header>
 <main id="app"><div class="card"><b>Đang tải dữ liệu...</b></div></main><div id="orderModal" class="modal" onclick="if(event.target===this)closeOrderDetail()"><div class="modal-card"><div class="modal-head"><div><b>Chi tiết đơn hàng</b><div id="detailSubtitle" class="muted"></div></div><button class="close" onclick="closeOrderDetail()">✕</button></div><div id="orderDetail" style="margin-top:14px"></div></div></div>
-<nav class="nago-bottom-nav" aria-label="Điều khiển nhanh"><button type="button" data-nav-key="home" class="active" onclick="nagoBottomNav('home',this)"><b>⌂</b><span>Tổng quan</span></button><button type="button" data-nav-key="orders" class="" onclick="nagoBottomNav('orders',this)"><b>▣</b><span>Đơn hàng</span></button><button type="button" data-nav-key="products" class="" onclick="nagoBottomNav('products',this)"><b>🍜</b><span>Món ăn</span></button><button type="button" data-nav-key="stats" class="" onclick="nagoBottomNav('stats',this)"><b>▥</b><span>Báo cáo</span></button></nav><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<nav class="nago-bottom-nav" aria-label="Điều khiển chính"><button data-nav-key="home" class="active" onclick="merchantNav('home',this)"><b>⌂</b><span>Trang chủ</span></button><button data-nav-key="orders" onclick="merchantNav('orders',this)"><b>▣</b><span>Đơn hàng</span></button><button data-nav-key="revenue" onclick="merchantNav('revenue',this)"><b>💰</b><span>Doanh thu</span></button><button data-nav-key="personal" onclick="merchantNav('personal',this)"><b>♙</b><span>Cá nhân</span></button></nav><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL="https://rnyymflpnidkgetmdwwx.supabase.co";
 const SUPABASE_KEY="sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx";
@@ -191,16 +191,51 @@ async function load(){
 }
 async function merchantAnalytics(){ const r=await db.rpc("merchant_dashboard"); return r.error?null:(r.data?.[0]||null); }
 function render(orders){
- const count=s=>orders.filter(o=>o.status===s).length;
- const shopName=shops.length===1?esc(shops[0].name):shops.length+" cửa hàng";
- let html='<div class="hero"><div><div class="muted">Xin chào</div><h1>'+shopName+'</h1><div class="muted">Theo dõi và xử lý đơn hàng theo thời gian thực.</div></div><div class="actions"><button class="btn" onclick="load()">↻ Làm mới</button><button class="btn gray" onclick="enableMerchantNotifications()">🔔 Thông báo đơn</button></div></div>';
- html+='<details class="section"><summary>🍜 Quản lý món ăn</summary><div class="section-body"><div class="actions"><select id="productShop"></select><input id="productName" placeholder="Tên món"><input id="productPrice" type="number" placeholder="Giá (đ)"><button class="btn" onclick="saveNewProduct()">+ Thêm món</button></div><div id="productManager"></div></div></details>'; html+='<details class="section compact"><summary>💡 Cách dùng nhanh <span class="section-note">3 bước</span></summary><div class="section-body"><div class="muted">1️⃣ Nhận đơn mới → 2️⃣ Xác nhận & chuẩn bị → 3️⃣ Bàn giao tài xế.</div></div></details>';html+='<div class="stats"><div class="stat">🆕<div class="muted">Đơn mới</div><b>'+count("pending")+'</b></div><div class="stat">🍳<div class="muted">Đang chuẩn bị</div><b>'+count("preparing")+'</b></div><div class="stat">🛵<div class="muted">Chờ tài xế</div><b>'+count("ready_for_pickup")+'</b></div><div class="stat">✓<div class="muted">Đã giao</div><b>'+count("delivered")+'</b></div></div><details class="section compact"><summary>📊 Doanh thu & hiệu suất<span class="section-note">Mở khi cần xem số liệu</span></summary><div class="section-body"><div id="analytics"><div class="muted">Đang tải...</div></div></div></details>';
- const attention=orders.filter(o=>["pending","preparing","ready_for_pickup"].includes(o.status));
-const codOutstanding=orders.filter(o=>o.status==="delivered"&&o.payment_method==="cod"&&o.payment_status==="unpaid");
-const attentionCount=attention.length+codOutstanding.length;
-html+='<details class="section"'+(attentionCount?' open':'')+'><summary>⚠️ Cần xử lý <span class="section-note">'+attentionCount+' mục</span></summary><div class="section-body"><div class="actions">'+(attention.length?'<span class="pill orange">'+attention.length+' đơn cần xử lý</span>':'')+(codOutstanding.length?'<span class="pill red">'+codOutstanding.length+' đơn COD chưa thu</span>':'')+'</div><div class="muted" style="margin-top:8px">'+(attentionCount?'Có đơn cần xử lý hoặc COD chưa được xác nhận thu tiền.':'Không có việc tồn đọng.')+'</div></div></details>';
-html+='<div class="layout"><aside><details class="section" open><summary>🏪 Cửa hàng của tôi</summary><div class="section-body">'+shops.map(s=>'<div class="shop active"><b>'+esc(s.name)+'</b><div class="muted">'+esc(s.address||"Chưa có địa chỉ")+'</div><div class="muted">'+(s.is_active?"● Đang hoạt động":"○ Tạm ngưng")+'</div></div>').join("")+'</div></details></aside><section><details class="section" open><summary>📦 Đơn hàng <span class="section-note">Chọn nhóm đơn cần xử lý</span></summary><div class="section-body"><div class="tabs"><button class="tab on" onclick="filterOrders(\'all\')">Tất cả</button><button class="tab" onclick="filterOrders(\'pending\')">Đơn mới</button><button class="tab" onclick="filterOrders(\'preparing\')">Đang làm</button><button class="tab" onclick="filterOrders(\'ready_for_pickup\')">Chờ tài xế</button><button class="tab" onclick="filterOrders(\'delivering\')">Đang giao</button><button class="tab" onclick="filterOrders(\'delivered\')">Đã giao</button><button class="tab" onclick="filterOrders(\'cancelled\')">Đã hủy</button><button class="tab" onclick="filterOrders(\'cod_unpaid\')">COD chưa thu</button></div><div id="orderList"></div></div></details></section></div>';
- app.innerHTML=html; window.merchantOrders=orders; filterOrders("all"); renderProductManager(); updateBottomNavData(); merchantAnalytics().then(a=>{const el=document.getElementById("analytics");if(!el||!a)return;el.innerHTML="<div class=\"stats\" style=\"margin-top:10px\"><div class=\"stat\"><div class=\"muted\">Tổng đơn</div><b>"+a.total_orders+"</b></div><div class=\"stat\"><div class=\"muted\">Đã giao</div><b>"+a.delivered_orders+"</b></div><div class=\"stat\"><div class=\"muted\">Đơn hủy</div><b>"+a.cancelled_orders+"</b></div><div class=\"stat\"><div class=\"muted\">Doanh thu đã giao</div><b>"+money(a.revenue_delivered)+"</b></div></div>";});
+ window.merchantOrders=orders||[];
+ renderMerchantHome();
+}
+function merchantTodayKey(){const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime()}
+function merchantRenderShell(title,body){
+ app.innerHTML='<div class="hero"><div><div class="muted">NaGo Merchant</div><h1>'+title+'</h1></div><button class="btn gray" onclick="load()">↻ Làm mới</button></div>'+body;
+}
+function renderMerchantHome(){
+ const all=window.merchantOrders||[], start=merchantTodayKey(), today=all.filter(o=>new Date(o.created_at).getTime()>=start);
+ const count=s=>today.filter(o=>o.status===s).length;
+ const cod=today.filter(o=>o.status==="delivered"&&o.payment_method==="cod"&&o.payment_status==="unpaid").length;
+ const statuses=[["pending","🆕 Đơn mới"],["shop_accepted","✓ Quán đã nhận"],["preparing","🍳 Đang chuẩn bị"],["ready_for_pickup","🛵 Chờ tài xế"],["driver_assigned","🚗 Đã có tài xế"],["picked_up","📦 Đã lấy hàng"],["delivering","🛵 Đang giao"],["delivered","✅ Đã giao"],["cancelled","✕ Đã hủy"],["rejected","⛔ Từ chối"]];
+ merchantRenderShell("Trang chủ",'<div class="stats">'+statuses.map(x=>'<div class="stat"><div class="muted">'+x[1]+'</div><b>'+count(x[0])+'</b></div>').join('')+'</div><div class="card" style="margin-top:14px"><b>Hôm nay</b><div class="muted" style="margin-top:6px">'+today.length+' đơn · '+money(today.filter(o=>o.status==="delivered").reduce((s,o)=>s+Number(o.total||0),0))+' doanh thu đã giao'+(cod?' · '+cod+' COD chưa thu':'')+'</div></div>');
+}
+async function merchantLoadRange(range){
+ const ids=shops.map(x=>x.id); if(!ids.length)return [];
+ const now=new Date(), start=new Date(now);
+ if(range==="day")start.setHours(0,0,0,0);
+ if(range==="month"){start.setDate(1);start.setHours(0,0,0,0)}
+ if(range==="year"){start.setMonth(0,1);start.setHours(0,0,0,0)}
+ const {data,error}=await db.from("orders").select("id,shop_id,status,subtotal,delivery_fee,discount,total,payment_method,payment_status,created_at,address:user_addresses(label,recipient_name,phone,address_line),items:order_items(product_name,quantity,unit_price,line_total)").in("shop_id",ids).gte("created_at",start.toISOString()).order("created_at",{ascending:false}).limit(5000);
+ if(error){alert(error.message);return []} return data||[];
+}
+async function renderMerchantOrders(range="day"){
+ const orders=await merchantLoadRange(range);
+ const by=orders.filter(o=>true);
+ merchantRenderShell("Đơn hàng",'<div class="tabs"><button class="tab '+(range==="day"?"on":"")+'" onclick="renderMerchantOrders(\'day\')">Hôm nay</button><button class="tab '+(range==="month"?"on":"")+'" onclick="renderMerchantOrders(\'month\')">Tháng này</button><button class="tab '+(range==="year"?"on":"")+'" onclick="renderMerchantOrders(\'year\')">Năm nay</button></div><div class="card"><b>'+by.length+' đơn</b></div><div id="merchantOrderList" style="margin-top:10px"></div>');
+ window.merchantOrders=orders;
+ const list=document.getElementById("merchantOrderList");
+ list.innerHTML=orders.length?orders.map(o=>'<div class="card order"><div class="orderhead"><div><b>#'+o.id.slice(0,8)+'</b><div class="muted">'+new Date(o.created_at).toLocaleString("vi-VN")+'</div></div><span class="pill">'+(labels[o.status]||o.status)+'</span></div><div class="row"><b>'+money(o.total)+'</b><button class="detail-btn" onclick="openOrderDetail(\''+o.id+'\')">👁 Chi tiết</button></div></div>').join(""):'<div class="card"><span class="muted">Không có đơn trong khoảng này.</span></div>';
+}
+async function renderMerchantRevenue(range="day"){
+ const orders=await merchantLoadRange(range), delivered=orders.filter(o=>o.status==="delivered"), revenue=delivered.reduce((s,o)=>s+Number(o.total||0),0), codOutstanding=orders.filter(o=>o.status==="delivered"&&o.payment_method==="cod"&&o.payment_status==="unpaid").reduce((s,o)=>s+Number(o.total||0),0);
+ merchantRenderShell("Doanh thu",'<div class="tabs"><button class="tab '+(range==="day"?"on":"")+'" onclick="renderMerchantRevenue(\'day\')">Ngày</button><button class="tab '+(range==="month"?"on":"")+'" onclick="renderMerchantRevenue(\'month\')">Tháng</button><button class="tab '+(range==="year"?"on":"")+'" onclick="renderMerchantRevenue(\'year\')">Năm</button></div><div class="stats"><div class="stat">💰<div class="muted">Doanh thu đã giao</div><b>'+money(revenue)+'</b></div><div class="stat">📦<div class="muted">Đơn đã giao</div><b>'+delivered.length+'</b></div><div class="stat">💵<div class="muted">COD chưa thu</div><b>'+money(codOutstanding)+'</b></div><div class="stat">📊<div class="muted">Tổng đơn</div><b>'+orders.length+'</b></div></div>');
+}
+function renderMerchantPersonal(){
+ merchantRenderShell("Cá nhân",'<div class="card"><b>👤 Tài khoản Merchant</b><div class="muted" style="margin-top:6px">'+esc(user?.email||"")+'</div></div><details class="section" open><summary>🍜 Món ăn của cửa hàng</summary><div class="section-body"><div class="actions"><select id="productShop"></select><input id="productName" placeholder="Tên món"><input id="productPrice" type="number" placeholder="Giá (đ)"><input id="productImage" type="file" accept="image/*"><button class="btn" onclick="saveNewProduct()">+ Thêm món</button></div><div class="muted">Ảnh món sẽ được lưu vào kho ảnh NaGo.</div><div id="productManager"></div></div></details><div class="actions" style="margin-top:14px"><button class="btn gray" onclick="enableMerchantNotifications()">🔔 Bật thông báo đơn</button><button class="btn red" onclick="merchantHardLogout()">Đăng xuất</button></div>');
+ renderProductManager();
+}
+function merchantNav(key,btn){
+ document.querySelectorAll(".nago-bottom-nav button").forEach(x=>x.classList.remove("active"));btn?.classList.add("active");
+ if(key==="home")return renderMerchantHome();
+ if(key==="orders")return renderMerchantOrders("day");
+ if(key==="revenue")return renderMerchantRevenue("day");
+ if(key==="personal")return renderMerchantPersonal();
 }
 function renderProductManager(){
  const el=document.getElementById("productManager"),sel=document.getElementById("productShop");if(!el||!sel)return;
@@ -219,11 +254,20 @@ async function updateProduct(id,name,price,available){
  if(r.error)return alert(r.error.message);await load();
 }
 async function saveNewProduct(){
- const shopId=document.getElementById("productShop").value,name=document.getElementById("productName").value.trim(),price=Number(document.getElementById("productPrice").value||0);
+ const shopId=document.getElementById("productShop")?.value,name=document.getElementById("productName")?.value.trim(),price=Number(document.getElementById("productPrice")?.value||0),file=document.getElementById("productImage")?.files?.[0];
  if(!shopId||!name||!Number.isFinite(price)||price<0)return alert("Vui lòng chọn cửa hàng, tên món và giá.");
- const r=await db.rpc("merchant_manage_product",{p_shop_id:shopId,p_name:name,p_price:price,p_is_available:true});
+ let image_url=null;
+ if(file){
+  if(file.size>5*1024*1024)return alert("Ảnh tối đa 5MB.");
+  const ext=(file.name.split(".").pop()||"jpg").toLowerCase(),path=user.id+"/"+crypto.randomUUID()+"."+ext;
+  const up=await db.storage.from("nago-products").upload(path,file,{contentType:file.type||"image/jpeg",upsert:false});
+  if(up.error)return alert("Không tải được ảnh: "+up.error.message);
+  image_url=db.storage.from("nago-products").getPublicUrl(path).data.publicUrl;
+ }
+ const r=await db.rpc("merchant_manage_product",{p_shop_id:shopId,p_name:name,p_price:price,p_image_url:image_url,p_is_available:true});
  if(r.error)return alert(r.error.message);
- document.getElementById("productName").value="";document.getElementById("productPrice").value="";await load();
+ document.getElementById("productName").value="";document.getElementById("productPrice").value="";document.getElementById("productImage").value="";await load();
+ renderMerchantPersonal();
 }
 async function toggleProduct(id,available){
  const r=await db.rpc("merchant_manage_product",{p_product_id:id,p_is_available:available});
