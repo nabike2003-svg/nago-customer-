@@ -62,14 +62,27 @@ async function resetPassword(){
 }
 async function signIn(){
  const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;
+ if(!email||!password){document.getElementById('loginMsg').innerHTML='<div class="error">Nhập email và mật khẩu.</div>';return}
+ await nagoSupabase.auth.signOut();
  const {data,error}=await nagoSupabase.auth.signInWithPassword({email,password});
  if(error){document.getElementById('loginMsg').innerHTML='<div class="error">'+esc(error.message)+'</div>';return}
  currentUser=data.user; await enter();
 }
 async function signOut(){await nagoSupabase.auth.signOut();currentUser=null;document.getElementById('app').classList.add('hidden');document.getElementById('loginBox').classList.remove('hidden');document.getElementById('logout').classList.add('hidden')}
 async function enter(){
+ const {data:sessionData}=await nagoSupabase.auth.getSession();
+ currentUser=sessionData.session?.user||null;
+ if(!currentUser){document.getElementById('app').classList.add('hidden');document.getElementById('loginBox').classList.remove('hidden');document.getElementById('logout').classList.add('hidden');return}
  const {data,error}=await nagoSupabase.rpc('admin_dashboard');
- if(error){document.getElementById('loginBox').classList.add('hidden');document.getElementById('app').classList.remove('hidden');document.getElementById('logout').classList.remove('hidden');note('Tài khoản chưa có quyền Admin: '+error.message,true);return}
+ if(error){
+   await nagoSupabase.auth.signOut();
+   currentUser=null;
+   document.getElementById('app').classList.add('hidden');
+   document.getElementById('loginBox').classList.remove('hidden');
+   document.getElementById('logout').classList.add('hidden');
+   document.getElementById('loginMsg').innerHTML='<div class="error">Tài khoản <b>'+esc(sessionData.session?.user?.email||'')+'</b> chưa có quyền Admin. Hãy đăng nhập bằng tài khoản Admin.</div>';
+   return;
+ }
  document.getElementById('loginBox').classList.add('hidden');document.getElementById('app').classList.remove('hidden');document.getElementById('logout').classList.remove('hidden');await loadAll();
 }
 async function loadAll(){
