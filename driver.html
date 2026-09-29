@@ -47,7 +47,16 @@ async function checkRoleAndLoad(){
  await profile();startDriverRealtime();await load();
 }
 function login(){app.innerHTML='<div class="card"><h2>Đăng nhập tài xế</h2><input id="email" type="email" placeholder="Email"><input id="pass" type="password" placeholder="Mật khẩu"><button class="btn" onclick="signin()">Đăng nhập</button></div>'}
-async function signin(){const {data,error}=await db.auth.signInWithPassword({email:document.getElementById("email").value.trim(),password:document.getElementById("pass").value});if(error)return alert(error.message);user=data.user;await checkRoleAndLoad()}
+async function signin(){
+ const email=document.getElementById("email")?.value.trim(),password=document.getElementById("pass")?.value||"";
+ if(!email||!password)return alert("Nhập email và mật khẩu.");
+ try{await db.auth.signOut({scope:"local"})}catch(_){}
+ try{localStorage.removeItem("nago_driver_auth")}catch(_){}
+ const {data,error}=await db.auth.signInWithPassword({email,password});
+ if(error)return alert(error.message);
+ user=data.user;
+ await checkRoleAndLoad();
+}
 async function profile(){
  let {data}=await db.from("driver_profiles").select("*").eq("id",user.id).maybeSingle();
  if(!data){const r=await db.from("driver_profiles").insert({id:user.id,full_name:user.user_metadata?.full_name||"",phone:user.user_metadata?.phone||""}).select().single();if(r.error)return alert(r.error.message);data=r.data}
