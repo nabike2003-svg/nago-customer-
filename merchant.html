@@ -157,6 +157,10 @@ async function load(){
  try{
   const r=await withTimeout(db.rpc("merchant_get_data"),10000,"Không tải được dữ liệu Merchant.");
   if(r.error){showLoadError("Không tải được dữ liệu Merchant: "+r.error.message);return}
+  if(!r.data || !Array.isArray(r.data.shops)){
+   showLoadError("Phiên Merchant chưa được xác thực đúng. Hãy đăng xuất và đăng nhập lại.");
+   return;
+  }
   const payload=r.data||{};
   shops=payload.shops||[];
   window.merchantProducts=payload.products||[];
