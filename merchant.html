@@ -220,10 +220,10 @@ async function renderMerchantOrders(range="day"){
  const list=document.getElementById("merchantOrderList");
  list.innerHTML=orders.length?orders.map(o=>{
  const b=[];
- if(o.status==="pending")b.push('<button class="btn" onclick="move(\\''+o.id+'\\',\\'shop_accepted\\')">✓ Nhận đơn</button>','<button class="btn red" onclick="move(\\''+o.id+'\\',\\'rejected\\')">Từ chối</button>');
- if(o.status==="shop_accepted")b.push('<button class="btn" onclick="move(\\''+o.id+'\\',\\'preparing\\')">🍳 Bắt đầu chuẩn bị</button>');
- if(o.status==="preparing")b.push('<button class="btn" onclick="move(\\''+o.id+'\\',\\'ready_for_pickup\\')">🛵 Sẵn sàng cho tài xế</button>');
- return '<div class="card order"><div class="orderhead"><div><b>#'+o.id.slice(0,8)+'</b><div class="muted">'+new Date(o.created_at).toLocaleString("vi-VN")+'</div></div><span class="pill '+statusPill(o.status,o.payment_status)+'">'+(labels[o.status]||o.status)+'</span></div><div class="row"><b>'+money(o.total)+'</b><span class="muted">'+(o.payment_method==="cod"?"COD":"Thanh toán")+'</span></div><div class="actions"><button class="detail-btn" onclick="openOrderDetail(\\''+o.id+'\\')">👁 Chi tiết</button>'+b.join("")+'</div></div>';
+ if(o.status==="pending")b.push('<button class="btn" onclick="move(\''+o.id+'\',\'shop_accepted\')">✓ Nhận đơn</button>','<button class="btn red" onclick="move(\''+o.id+'\',\'rejected\')">Từ chối</button>');
+ if(o.status==="shop_accepted")b.push('<button class="btn" onclick="move(\''+o.id+'\',\'preparing\')">🍳 Bắt đầu chuẩn bị</button>');
+ if(o.status==="preparing")b.push('<button class="btn" onclick="move(\''+o.id+'\',\'ready_for_pickup\')">🛵 Sẵn sàng cho tài xế</button>');
+ return '<div class="card order"><div class="orderhead"><div><b>#'+o.id.slice(0,8)+'</b><div class="muted">'+new Date(o.created_at).toLocaleString("vi-VN")+'</div></div><span class="pill '+statusPill(o.status,o.payment_status)+'">'+(labels[o.status]||o.status)+'</span></div><div class="row"><b>'+money(o.total)+'</b><span class="muted">'+(o.payment_method==="cod"?"COD":"Thanh toán")+'</span></div><div class="actions"><button class="detail-btn" onclick="openOrderDetail(\''+o.id+'\')">👁 Chi tiết</button>'+b.join("")+'</div></div>';
 }).join(""):'<div class="card"><span class="muted">Không có đơn trong khoảng này.</span></div>';
 }
 async function renderMerchantRevenue(range="day"){
