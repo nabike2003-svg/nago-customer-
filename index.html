@@ -115,20 +115,37 @@ let cart=JSON.parse(localStorage.getItem("nago_cart")||"[]");
 let currentUser=null;
 async function loadRestaurants(){
   const list=document.getElementById('restaurantList');
+  const homeList=document.getElementById('homeRestaurants');
   try{
     list.innerHTML='<div class="order-card"><b>Đang tải quán...</b><div class="meta">Đang kết nối NaGo Food.</div></div>';
+    homeList.innerHTML='<div class="order-card"><b>Đang tải quán...</b><div class="meta">Đang kết nối NaGo Food.</div></div>';
     const shopsResult=await supabase.from('shops').select('id,name,description,address,rating,delivery_fee').eq('is_active',true).order('name');
     if(shopsResult.error)throw new Error('shops: '+shopsResult.error.message);
+    const shops=shopsResult.data||[];
+    let products=[];
+    let productError='';
     const productsResult=await supabase.from('products').select('id,shop_id,name,description,price').eq('is_available',true).order('sort_order');
-    if(productsResult.error)throw new Error('products: '+productsResult.error.message);
-    const shops=shopsResult.data||[],products=productsResult.data||[];
+    if(productsResult.error){
+      console.error('NaGo products load error:',productsResult.error);
+      productError=productsResult.error.message;
+    }else{
+      products=productsResult.data||[];
+    }
     restaurants=shops.map(r=>({...r,tag:'NaGo Food',time:'20–30 phút',emoji:r.name.includes('Cà phê')?'☕':r.name.includes('Mì')?'🍝':'🍲',items:products.filter(p=>p.shop_id===r.id).map(p=>({...p,emoji:p.name.includes('Cà phê')?'☕':p.name.includes('Matcha')?'🍵':p.name.includes('Gà')?'🍗':p.name.includes('Mì')?'🍝':p.name.includes('Bún')?'🍜':p.name.includes('Trà')?'🍑':'🍖'}))}));
     render();
-    if(!restaurants.length)list.innerHTML='<div class="order-card"><b>Chưa có quán đang hoạt động</b><div class="meta">Supabase đã kết nối nhưng chưa có cửa hàng active.</div></div>';
+    if(!restaurants.length){
+      const msg='<div class="order-card"><b>Chưa có quán đang hoạt động</b><div class="meta">Supabase đã kết nối nhưng chưa có cửa hàng active.</div></div>';
+      list.innerHTML=msg; homeList.innerHTML=msg;
+    }else if(productError){
+      const msg='<div class="order-card"><b>Đã tải quán nhưng chưa tải được món</b><div class="meta">Lỗi products: '+String(productError)+'</div></div>';
+      list.insertAdjacentHTML('afterbegin',msg);
+    }
   }catch(error){
     console.error('NaGo Food load error:',error);
     restaurants=[];render();
-    list.innerHTML='<div class="order-card"><b>Không tải được danh sách quán</b><div class="meta">Lỗi kết nối dữ liệu NaGo Food: '+String(error.message||error)+'</div><button class="primary" onclick="loadRestaurants()">Thử lại</button></div>';
+    const msg='<div class="order-card"><b>Không tải được danh sách quán</b><div class="meta">Lỗi kết nối dữ liệu NaGo Food: '+String(error.message||error)+'</div><button class="primary" onclick="loadRestaurants()">Thử lại</button></div>';
+    list.innerHTML=msg;
+    homeList.innerHTML=msg;
   }
 }
 function restaurantCard(r){return \`<div class="restaurant" onclick="openShop('\${r.id}')"><div class="food-img">\${r.emoji}</div><div class="restaurant-body"><div class="restaurant-title"><b>\${r.name}</b><span class="rating">★ \${r.rating}</span></div><div class="meta">\${r.tag} • \${r.time}</div><span class="tag">Giao hàng NaGo</span></div></div>\`}
