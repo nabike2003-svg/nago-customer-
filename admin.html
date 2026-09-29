@@ -78,10 +78,28 @@ async function loadAll(){
  users=u.data||[];shops=s.data||[];orders=o.data||[];drivers=dr.data||[];renderStats(d.data||{});renderUsers();renderShops();renderOrders();
 }
 function renderStats(x){const a=[['Người dùng',x.users],['Merchant',x.merchants],['Driver',x.drivers],['Đã duyệt tài xế',x.approved_drivers],['Cửa hàng',x.shops],['Shop đang bật',x.active_shops],['Đơn hàng',x.orders],['Đơn chờ xử lý',x.pending_orders]];document.getElementById('stats').innerHTML=a.map(([k,v])=>'<div class="stat"><div class="muted">'+k+'</div><strong>'+Number(v||0)+'</strong></div>').join('')}
+async function createStaff(){
+ const name=document.getElementById('staffName').value.trim();
+ const phone=document.getElementById('staffPhone').value.trim();
+ const email=document.getElementById('staffEmail').value.trim();
+ const password=document.getElementById('staffPassword').value;
+ const role=document.getElementById('staffRole').value;
+ if(!email||password.length<6)return note('Nhập email và mật khẩu từ 6 ký tự',true);
+ const {data,error}=await nagoSupabase.functions.invoke('admin-create-staff-user',{body:{full_name:name,phone,email,password,role}});
+ if(error){note(error.message||'Không tạo được tài khoản',true);return}
+ if(data?.error){note(data.error,true);return}
+ document.getElementById('staffName').value='';
+ document.getElementById('staffPhone').value='';
+ document.getElementById('staffEmail').value='';
+ document.getElementById('staffPassword').value='';
+ note('Đã tạo tài khoản '+role+'. Driver cần được duyệt trước khi nhận đơn.');
+ await loadAll();
+}
 function renderUsers(){
  const el=document.getElementById('usersPanel');
- if(!users.length){el.innerHTML='<div class="empty">Chưa có người dùng</div>';return}
- el.innerHTML='<div class="topline"><h2>Người dùng</h2><span class="muted">'+users.length+' tài khoản</span></div><div class="tablewrap"><div class="row head"><div>Tài khoản</div><div>Vai trò</div><div>Tài xế</div><div>Ngày tạo</div><div>Thao tác</div></div>'+users.map(u=>'<div class="row"><div><b>'+esc(u.full_name||'Chưa đặt tên')+'</b><div class="muted">'+esc(u.email||'')+'</div><div class="muted">'+esc(u.phone||'')+'</div></div><div><select onchange="setRole(\''+u.id+'\',this.value)"><option value="customer" '+(u.role==='customer'?'selected':'')+'>Customer</option><option value="merchant" '+(u.role==='merchant'?'selected':'')+'>Merchant</option><option value="driver" '+(u.role==='driver'?'selected':'')+'>Driver</option><option value="admin" '+(u.role==='admin'?'selected':'')+'>Admin</option></select></div><div>'+(u.role==='driver'?('<span class="badge '+(u.driver_approved?'ok':'warn')+'">'+(u.driver_approved?'Đã duyệt':'Chưa duyệt')+'</span><div style="margin-top:6px">'+(u.driver_approved?'<button class="danger" onclick="approveDriver(\''+u.id+'\',false)">Tắt duyệt</button>':'<button class="primary" onclick="approveDriver(\''+u.id+'\',true)">Duyệt</button>')+'</div>'):'—')+'</div><div class="muted">'+new Date(u.created_at).toLocaleDateString('vi-VN')+'</div><div class="actions"><span class="badge">'+esc(u.role||'customer')+'</span></div></div>').join('')+'</div>';
+ const createBox='<div class="card" style="margin:0 0 16px;padding:14px;background:#f7fbfa"><div class="topline"><div><b>Tạo tài khoản Merchant / Driver</b><div class="muted">Admin đặt email + mật khẩu. Tài khoản được xác nhận email tự động.</div></div></div><div class="row" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr;min-width:0;border:0"><input id="staffName" placeholder="Họ tên"><input id="staffPhone" placeholder="Số điện thoại"><input id="staffEmail" type="email" placeholder="Email"><input id="staffPassword" type="password" placeholder="Mật khẩu ≥ 6 ký tự"><select id="staffRole"><option value="merchant">Merchant</option><option value="driver">Driver</option></select></div><button class="primary" onclick="createStaff()">+ Tạo tài khoản</button></div>';
+ if(!users.length){el.innerHTML=createBox+'<div class="empty">Chưa có người dùng</div>';return}
+ el.innerHTML=createBox+'<div class="topline"><h2>Người dùng</h2><span class="muted">'+users.length+' tài khoản</span></div><div class="tablewrap"><div class="row head"><div>Tài khoản</div><div>Vai trò</div><div>Tài xế</div><div>Ngày tạo</div><div>Thao tác</div></div>'+users.map(u=>'<div class="row"><div><b>'+esc(u.full_name||'Chưa đặt tên')+'</b><div class="muted">'+esc(u.email||'')+'</div><div class="muted">'+esc(u.phone||'')+'</div></div><div><select onchange="setRole(\''+u.id+'\',this.value)"><option value="customer" '+(u.role==='customer'?'selected':'')+'>Customer</option><option value="merchant" '+(u.role==='merchant'?'selected':'')+'>Merchant</option><option value="driver" '+(u.role==='driver'?'selected':'')+'>Driver</option><option value="admin" '+(u.role==='admin'?'selected':'')+'>Admin</option></select></div><div>'+(u.role==='driver'?('<span class="badge '+(u.driver_approved?'ok':'warn')+'">'+(u.driver_approved?'Đã duyệt':'Chưa duyệt')+'</span><div style="margin-top:6px">'+(u.driver_approved?'<button class="danger" onclick="approveDriver(\''+u.id+'\',false)">Tắt duyệt</button>':'<button class="primary" onclick="approveDriver(\''+u.id+'\',true)">Duyệt</button>')+'</div>'):'—')+'</div><div class="muted">'+new Date(u.created_at).toLocaleDateString('vi-VN')+'</div><div class="actions"><span class="badge">'+esc(u.role||'customer')+'</span></div></div>').join('')+'</div>';
 }
 function renderShops(){
  const el=document.getElementById('shopsPanel');
