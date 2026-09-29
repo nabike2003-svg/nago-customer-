@@ -235,9 +235,9 @@ async function toggleMerchantShop(id,active){const r=await db.rpc("merchant_set_
 function renderMerchantPersonal(){
  const locationHtml=(shops||[]).map(s=>s.location_locked
   ? '<div class="shop"><b>'+esc(s.name)+'</b><div class="muted">✅ Đã xác nhận và khóa vị trí</div></div>'
-  : '<div class="shop"><b>'+esc(s.name)+'</b><button class="btn" style="margin-top:9px" onclick="confirmShopLocation(\\''+s.id+'\\')">📍 Xác nhận vị trí hiện tại</button></div>'
+  : '<div class="shop"><b>'+esc(s.name)+'</b><button class="btn" style="margin-top:9px" onclick="confirmShopLocation(&quot;'+s.id+'&quot;)">📍 Xác nhận vị trí hiện tại</button></div>'
  ).join("");
- const shopHtml=(shops||[]).map(s=>'<div class="row" style="margin-bottom:8px"><div><b>'+esc(s.name)+'</b><div class="muted">'+(s.is_active?"🟢 Đang mở":"⚪ Đang đóng")+'</div></div><button class="btn '+(s.is_active?"orange":"")+'" onclick="toggleMerchantShop(\\''+s.id+'\\','+(!s.is_active)+')">'+(s.is_active?"Đóng cửa":"Mở cửa")+'</button></div>').join("");
+ const shopHtml=(shops||[]).map(s=>'<div class="row" style="margin-bottom:8px"><div><b>'+esc(s.name)+'</b><div class="muted">'+(s.is_active?"🟢 Đang mở":"⚪ Đang đóng")+'</div></div><button class="btn '+(s.is_active?"orange":"")+'" onclick="toggleMerchantShop(&quot;'+s.id+'&quot;,'+(!s.is_active)+')">'+(s.is_active?"Đóng cửa":"Mở cửa")+'</button></div>').join("");
  merchantRenderShell("Cá nhân",
   '<div class="card"><b>👤 Tài khoản Merchant</b><div class="muted" style="margin-top:6px">'+esc(user?.email||"")+'</div></div>'+
   '<details class="section" open><summary>📍 Xác nhận địa chỉ cửa hàng</summary><div class="section-body"><p class="muted">Merchant chỉ được xác nhận vị trí một lần. Sau khi khóa, vị trí này là điểm căn cứ cho Driver.</p>'+locationHtml+'</div></details>'+
