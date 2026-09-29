@@ -23,7 +23,7 @@ const URL="https://rnyymflpnidkgetmdwwx.supabase.co";
 const KEY="sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx";
 const db=window.supabase.createClient(URL,KEY);
 const app=document.getElementById("app");
-let user=null,shops=[];
+let user=null,shops=[],merchantRealtime=null;
 const labels={pending:"Đã đặt",shop_accepted:"Quán đã nhận",preparing:"Đang chuẩn bị",ready_for_pickup:"Chờ tài xế",rejected:"Đã từ chối",cancelled:"Đã hủy",delivering:"Đang giao",delivered:"Đã giao"};
 const money=n=>new Intl.NumberFormat("vi-VN").format(Number(n)||0)+"đ";
 async function start(){
@@ -45,6 +45,11 @@ async function load(){
  shops=data||[];
  if(!shops.length){app.innerHTML='<div class="card"><b>Chưa có shop được gán cho tài khoản này.</b><p class="muted">Admin cần đặt shops.owner_id = user.id.</p></div>';return}
  const ids=shops.map(x=>x.id);
+ if(merchantRealtime)await db.removeChannel(merchantRealtime);
+ merchantRealtime=db.channel("nago-merchant-orders")
+   .on("postgres_changes",{event:"*",schema:"public",table:"orders"},payload=>{
+     if(ids.includes(payload.new?.shop_id)||ids.includes(payload.old?.shop_id))load();
+   }).subscribe();
  const {data:orders,error:oe}=await db.from("orders").select("id,shop_id,status,subtotal,delivery_fee,discount,total,payment_method,payment_status,created_at,address:user_addresses(label,recipient_name,phone,address_line),items:order_items(product_name,quantity,unit_price,line_total)").in("shop_id",ids).order("created_at",{ascending:false}).limit(50);
  if(oe){app.innerHTML='<div class="card">Không tải được đơn: '+oe.message+'</div>';return}
  render(orders||[]);
