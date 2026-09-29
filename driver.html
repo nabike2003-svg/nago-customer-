@@ -8,7 +8,14 @@ header{background:var(--n);color:#fff;position:sticky;top:0;z-index:10}.top{max-
 .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 4px 18px #00000008}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:15px}.stat b{display:block;font-size:25px;color:var(--n);margin-top:5px}.btn{border:0;border-radius:11px;padding:10px 14px;background:var(--g);color:#fff;font-weight:700;cursor:pointer}.btn.gray{background:#e8eeee;color:var(--n)}.btn.orange{background:var(--orange)}.pill{padding:6px 9px;border-radius:999px;background:#e7f8f5;color:#087b6d;font-size:12px;font-weight:700}.pill.warn{background:#fff2e9;color:#b95310}.items{margin:10px 0}.item{padding:8px 0;border-bottom:1px solid #edf1f0;display:flex;justify-content:space-between;gap:10px}.customer{background:#f7faf9;border-radius:12px;padding:11px;margin:10px 0}.actions{display:flex;flex-wrap:wrap;gap:6px}.login{max-width:430px;margin:35px auto}.statusbar{display:flex;align-items:center;justify-content:space-between;gap:12px}.approved{background:#e9faf5;color:#18794e;padding:9px 11px;border-radius:10px;font-weight:700}.notapproved{background:#fff3e8;color:#a34a08;padding:9px 11px;border-radius:10px;font-weight:700}
 @media(max-width:700px){.stats{grid-template-columns:1fr}.hero{flex-direction:column;align-items:start}.wrap{padding:15px}.top{padding:12px 14px}}
 </style></head><body>
-<header><div class="top"><div class="brand"><div class="logo">N</div><div><b>NaGo Driver</b><small>Trung tâm tài xế</small></div></div><button class="btn gray" onclick="logout()">Đăng xuất</button></div></header>
+<script>
+function driverHardLogout(){
+  try{localStorage.removeItem("nago_driver_auth")}catch(_){}
+  try{sessionStorage.removeItem("nago_driver_auth")}catch(_){}
+  window.location.href=window.location.pathname+"?login=1";
+}
+</script>
+<header><div class="top"><div class="brand"><div class="logo">N</div><div><b>NaGo Driver</b><small>Trung tâm tài xế</small></div></div><button class="btn gray" onclick="driverHardLogout()">Đăng xuất</button></div></header>
 <main class="wrap" id="app"><div class="card">Đang tải...</div></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -28,7 +35,7 @@ async function start(){
  const s=await db.auth.getSession();user=s.data.session?.user||null;
  if(!user)return login();
  await checkRoleAndLoad();
- db.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;if(!user){login()}else{checkRoleAndLoad()}});
+ db.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;if(_e==="SIGNED_OUT"){return}if(!user){login()}else{checkRoleAndLoad()}});
 }
 async function checkRoleAndLoad(){
  const {data:roleRow,error}=await db.from("profiles").select("role").eq("id",user.id).maybeSingle();
@@ -72,7 +79,13 @@ async function load(){
 }
 async function claim(id){const {error}=await db.rpc("driver_claim_order",{p_order_id:id});if(error)return alert(error.message);await load()}
 async function move(id,status){const notes={picked_up:"Tài xế đã lấy hàng",delivering:"Tài xế bắt đầu giao",delivered:"Tài xế xác nhận đã giao"};const {error}=await db.rpc("driver_transition_order",{p_order_id:id,p_next_status:status,p_note:notes[status]});if(error)return alert(error.message);await load()}
-async function logout(){await db.auth.signOut();user=null;login()}
+function logout(){
+ user=null;
+ try{localStorage.removeItem("nago_driver_auth")}catch(_){}
+ try{sessionStorage.removeItem("nago_driver_auth")}catch(_){}
+ Promise.resolve(db.auth.signOut({scope:"local"})).catch(()=>{});
+ login();
+}
 function esc(v){return String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 start();
 </script></body></html>
