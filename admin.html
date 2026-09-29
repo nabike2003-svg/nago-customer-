@@ -26,7 +26,7 @@ main{max-width:1100px;margin:auto;padding:18px 14px 50px}.login,.panel,.stat{bac
 <h1>Đăng nhập Admin</h1><p class="muted">Tài khoản phải được cấp role <b>admin</b>.</p>
 <input id="email" type="email" placeholder="Email">
 <input id="password" type="password" placeholder="Mật khẩu">
-<button class="primary" style="width:100%" onclick="signIn()">Đăng nhập</button>
+<button class="primary" style="width:100%" onclick="signIn()">Đăng nhập</button><button class="ghost" style="width:100%;margin-top:8px" onclick="resetPassword()">Quên mật khẩu?</button>
 <div id="loginMsg"></div>
 </section>
 <section id="app" class="hidden">
@@ -49,6 +49,15 @@ let currentUser=null, users=[], shops=[], orders=[], drivers=[];
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const money=v=>new Intl.NumberFormat('vi-VN').format(Number(v)||0)+'đ';
 function note(s,err=false){document.getElementById('msg').innerHTML=s?'<div class="error" style="'+(err?'':'background:#e9faf5;color:#18794e')+'">'+esc(s)+'</div>':''}
+async function resetPassword(){
+ const email=document.getElementById('email').value.trim();
+ const box=document.getElementById('loginMsg');
+ if(!email){box.innerHTML='<div class="error">Nhập email trước khi đặt lại mật khẩu.</div>';return}
+ const {error}=await nagoSupabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
+ box.innerHTML=error
+  ? '<div class="error">'+esc(error.message)+'</div>'
+  : '<div class="error" style="background:#e9faf5;color:#18794e">Đã gửi email đặt lại mật khẩu. Hãy kiểm tra hộp thư.</div>';
+}
 async function signIn(){
  const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;
  const {data,error}=await nagoSupabase.auth.signInWithPassword({email,password});
