@@ -105,7 +105,7 @@ function renderStats(x,a){
  ['Cửa hàng',data.shops??x.shops],['Shop đang bật',data.active_shops??x.active_shops],
  ['Tổng đơn',data.total_orders??x.orders],['Đơn mới',data.pending_orders??x.pending_orders],
  ['Đang xử lý',data.active_orders??'—'],['Đã giao',data.delivered_orders??'—'],['Đơn hủy',data.cancelled_orders??'—'],
- ['GMV đã giao',money(data.gmv_delivered??0)],['GMV hợp lệ',money(data.gmv_valid??0)]
+ ['GMV đã giao',money(data.gmv_delivered??0)],['GMV hợp lệ',money(data.gmv_valid??0)],['COD đã thu',money(data.cod_collected??0)],['COD chưa thu',money(data.cod_outstanding??0)]
  ];
  document.getElementById('stats').innerHTML=cards.map(([k,v])=>'<div class="stat"><div class="muted">'+k+'</div><strong>'+((typeof v==='number')?Number(v||0):esc(v))+'</strong></div>').join('');
 }
