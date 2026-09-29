@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NaGo Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--g:#00BFA6;--n:#102A43;--bg:#F7F9F8;--t:#263238;--m:#78909C;--o:#FF8A34;--r:#E5484D}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,"Be Vietnam Pro",sans-serif;color:var(--t)}
+header{position:sticky;top:0;z-index:3;background:white;border-bottom:1px solid #e7ecea;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.brand{font-weight:900;color:var(--n);font-size:22px}.brand b{color:var(--g)}
+button{border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}.primary{background:var(--g);color:white}.ghost{background:#eef5f3;color:var(--n)}.danger{background:#fff0f0;color:var(--r)}
+main{max-width:1100px;margin:auto;padding:18px 14px 50px}.login,.panel,.stat{background:#fff;border:1px solid #e5ece9;border-radius:18px;padding:18px;box-shadow:0 5px 20px #102a4308}
+.login{max-width:420px;margin:50px auto}.login h1{margin-top:0;color:var(--n)}input,select{width:100%;padding:12px;border:1px solid #d8e2df;border-radius:11px;margin:6px 0 12px;background:white}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat strong{display:block;font-size:28px;color:var(--n);margin-top:5px}.muted{color:var(--m);font-size:13px}
+.tabs{display:flex;gap:8px;margin:16px 0;flex-wrap:wrap}.tabs button.active{background:var(--n);color:white}
+.tablewrap{overflow:auto}.row{display:grid;grid-template-columns:1.5fr 1.2fr 1fr 1fr 1.5fr;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #edf1ef;min-width:780px}.head{font-weight:800;color:var(--n)}.actions{display:flex;gap:6px;flex-wrap:wrap}.badge{display:inline-block;border-radius:999px;padding:5px 9px;background:#eef5f3;font-size:12px}.ok{background:#e7f7ef;color:#18794e}.warn{background:#fff4e8;color:#a85d00}.off{background:#f1f3f3;color:#65757c}
+.empty{text-align:center;padding:30px;color:var(--m)}.hidden{display:none}.topline{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.error{background:#fff0f0;color:#a3262e;padding:10px 12px;border-radius:12px;margin:10px 0}
+@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.row{min-width:720px}}
+</style>
+</head>
+<body>
+<header><div class="brand">NaGo <b>Admin</b></div><button id="logout" class="ghost hidden" onclick="signOut()">Đăng xuất</button></header>
+<main>
+<section id="loginBox" class="login">
+<h1>Đăng nhập Admin</h1><p class="muted">Tài khoản phải được cấp role <b>admin</b>.</p>
+<input id="email" type="email" placeholder="Email">
+<input id="password" type="password" placeholder="Mật khẩu">
+<button class="primary" style="width:100%" onclick="signIn()">Đăng nhập</button>
+<div id="loginMsg"></div>
+</section>
+<section id="app" class="hidden">
+<div id="msg"></div>
+<div class="topline"><div><h1 style="margin:4px 0">Bảng điều hành</h1><div class="muted">Quản lý người dùng, tài xế và cửa hàng</div></div><button class="primary" onclick="loadAll()">↻ Làm mới</button></div>
+<div id="stats" class="grid" style="margin-top:16px"></div>
+<div class="tabs">
+<button class="ghost active" id="tabUsers" onclick="showTab('users')">Người dùng</button>
+<button class="ghost" id="tabShops" onclick="showTab('shops')">Cửa hàng</button>
+</div>
+<div id="usersPanel" class="panel"></div>
+<div id="shopsPanel" class="panel hidden"></div>
+</section>
+</main>
+<script>
+const SUPABASE_URL="https://rnyymflpnidkgetmdwwx.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx";
+const nagoSupabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let currentUser=null, users=[], shops=[];
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const money=v=>new Intl.NumberFormat('vi-VN').format(Number(v)||0)+'đ';
+function note(s,err=false){document.getElementById('msg').innerHTML=s?'<div class="error" style="'+(err?'':'background:#e9faf5;color:#18794e')+'">'+esc(s)+'</div>':''}
+async function signIn(){
+ const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;
+ const {data,error}=await nagoSupabase.auth.signInWithPassword({email,password});
+ if(error){document.getElementById('loginMsg').innerHTML='<div class="error">'+esc(error.message)+'</div>';return}
+ currentUser=data.user; await enter();
+}
+async function signOut(){await nagoSupabase.auth.signOut();currentUser=null;document.getElementById('app').classList.add('hidden');document.getElementById('loginBox').classList.remove('hidden');document.getElementById('logout').classList.add('hidden')}
+async function enter(){
+ const {data,error}=await nagoSupabase.rpc('admin_dashboard');
+ if(error){document.getElementById('loginBox').classList.add('hidden');document.getElementById('app').classList.remove('hidden');document.getElementById('logout').classList.remove('hidden');note('Tài khoản chưa có quyền Admin: '+error.message,true);return}
+ document.getElementById('loginBox').classList.add('hidden');document.getElementById('app').classList.remove('hidden');document.getElementById('logout').classList.remove('hidden');await loadAll();
+}
+async function loadAll(){
+ const [d,u,s]=await Promise.all([nagoSupabase.rpc('admin_dashboard'),nagoSupabase.rpc('admin_list_users'),nagoSupabase.rpc('admin_list_shops')]);
+ if(d.error||u.error||s.error){note((d.error||u.error||s.error).message,true);return}
+ users=u.data||[];shops=s.data||[];renderStats(d.data||{});renderUsers();renderShops();
+}
+function renderStats(x){const a=[['Người dùng',x.users],['Merchant',x.merchants],['Driver',x.drivers],['Đã duyệt tài xế',x.approved_drivers],['Cửa hàng',x.shops],['Shop đang bật',x.active_shops],['Đơn hàng',x.orders],['Đơn chờ xử lý',x.pending_orders]];document.getElementById('stats').innerHTML=a.map(([k,v])=>'<div class="stat"><div class="muted">'+k+'</div><strong>'+Number(v||0)+'</strong></div>').join('')}
+function renderUsers(){
+ const el=document.getElementById('usersPanel');
+ if(!users.length){el.innerHTML='<div class="empty">Chưa có người dùng</div>';return}
+ el.innerHTML='<div class="topline"><h2>Người dùng</h2><span class="muted">'+users.length+' tài khoản</span></div><div class="tablewrap"><div class="row head"><div>Tài khoản</div><div>Vai trò</div><div>Tài xế</div><div>Ngày tạo</div><div>Thao tác</div></div>'+users.map(u=>'<div class="row"><div><b>'+esc(u.full_name||'Chưa đặt tên')+'</b><div class="muted">'+esc(u.email||'')+'</div><div class="muted">'+esc(u.phone||'')+'</div></div><div><select onchange="setRole(\''+u.id+'\',this.value)"><option value="customer" '+(u.role==='customer'?'selected':'')+'>Customer</option><option value="merchant" '+(u.role==='merchant'?'selected':'')+'>Merchant</option><option value="driver" '+(u.role==='driver'?'selected':'')+'>Driver</option><option value="admin" '+(u.role==='admin'?'selected':'')+'>Admin</option></select></div><div>'+(u.role==='driver'?('<span class="badge '+(u.driver_approved?'ok':'warn')+'">'+(u.driver_approved?'Đã duyệt':'Chưa duyệt')+'</span><div style="margin-top:6px">'+(u.driver_approved?'<button class="danger" onclick="approveDriver(\''+u.id+'\',false)">Tắt duyệt</button>':'<button class="primary" onclick="approveDriver(\''+u.id+'\',true)">Duyệt</button>')+'</div>'):'—')+'</div><div class="muted">'+new Date(u.created_at).toLocaleDateString('vi-VN')+'</div><div class="actions"><span class="badge">'+esc(u.role||'customer')+'</span></div></div>').join('')+'</div>';
+}
+function renderShops(){
+ const el=document.getElementById('shopsPanel');
+ if(!shops.length){el.innerHTML='<div class="empty">Chưa có cửa hàng</div>';return}
+ const merchants=users.filter(u=>u.role==='merchant');
+ el.innerHTML='<div class="topline"><h2>Cửa hàng</h2><span class="muted">'+shops.length+' cửa hàng</span></div><div class="tablewrap"><div class="row head"><div>Cửa hàng</div><div>Chủ shop</div><div>Trạng thái</div><div>Đánh giá</div><div>Thao tác</div></div>'+shops.map(s=>'<div class="row"><div><b>'+esc(s.name)+'</b></div><div><select onchange="assignShop(\''+s.id+'\',this.value)"><option value="">Chưa gán</option>'+merchants.map(m=>'<option value="'+m.id+'" '+(s.owner_id===m.id?'selected':'')+'>'+esc(m.full_name||m.email)+'</option>').join('')+'</select></div><div><span class="badge '+(s.is_active?'ok':'off')+'">'+(s.is_active?'Đang bật':'Đang tắt')+'</span></div><div>'+esc(s.rating??'—')+'</div><div><button class="'+(s.is_active?'danger':'primary')+'" onclick="setShopActive(\''+s.id+'\','+(!s.is_active)+')">'+(s.is_active?'Tắt shop':'Bật shop')+'</button></div></div>').join('')+'</div>';
+}
+async function setRole(id,role){const {error}=await nagoSupabase.rpc('admin_set_user_role',{p_user_id:id,p_role:role});if(error){note(error.message,true);await loadAll();return}note('Đã cập nhật vai trò');await loadAll()}
+async function approveDriver(id,ok){const {error}=await nagoSupabase.rpc('admin_set_driver_approval',{p_user_id:id,p_approved:ok});if(error){note(error.message,true);return}note(ok?'Đã duyệt tài xế':'Đã tắt duyệt tài xế');await loadAll()}
+async function assignShop(id,owner){const {error}=await nagoSupabase.rpc('admin_assign_shop',{p_shop_id:id,p_owner_id:owner||null});if(error){note(error.message,true);await loadAll();return}note('Đã cập nhật chủ shop');await loadAll()}
+async function setShopActive(id,ok){const {error}=await nagoSupabase.rpc('admin_set_shop_active',{p_shop_id:id,p_active:ok});if(error){note(error.message,true);return}note(ok?'Đã bật shop':'Đã tắt shop');await loadAll()}
+function showTab(t){document.getElementById('usersPanel').classList.toggle('hidden',t!=='users');document.getElementById('shopsPanel').classList.toggle('hidden',t!=='shops');document.getElementById('tabUsers').classList.toggle('active',t==='users');document.getElementById('tabShops').classList.toggle('active',t==='shops')}
+(async()=>{const {data}=await nagoSupabase.auth.getSession();currentUser=data.session?.user||null;if(currentUser)await enter();nagoSupabase.auth.onAuthStateChange((_e,s)=>{currentUser=s?.user||null;if(currentUser)enter()})})();
+</script>
+</body></html>
