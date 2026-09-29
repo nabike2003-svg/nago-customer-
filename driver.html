@@ -22,7 +22,7 @@ function driverHardLogout(){
 <nav class="nago-bottom-nav" aria-label="Điều khiển chính"><button data-nav-key="home" class="active" onclick="driverNav('home',this)"><b>⌂</b><span>Trang chủ</span></button><button data-nav-key="income" onclick="driverNav('income',this)"><b>💰</b><span>Thu nhập</span></button><button data-nav-key="personal" onclick="driverNav('personal',this)"><b>♙</b><span>Cá nhân</span></button></nav><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const db=window.supabase.createClient("https://rnyymflpnidkgetmdwwx.supabase.co","sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx",{auth:{storageKey:"nago_driver_auth",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-let user=null,online=false,approved=false,driverRealtime=null,driverStats={delivered:0,revenue:0,assigned:0},driverRating=5;const app=document.getElementById("app");
+let user=null,online=false,approved=false,driverRealtime=null,driverStats={delivered:0,revenue:0,assigned:0},driverRating=5,driverPollTimer=null;const app=document.getElementById("app");
 const labels={ready_for_pickup:"Chờ tài xế",driver_assigned:"Đã nhận đơn",picked_up:"Đã lấy hàng",delivering:"Đang giao",delivered:"Đã giao"};
 const money=n=>new Intl.NumberFormat("vi-VN").format(Number(n)||0)+"đ";
 function notifyDriver(title,body){
@@ -120,7 +120,7 @@ let driverGpsTimer=null,driverLocation=null;
 function distanceKm(lat1,lon1,lat2,lon2){const R=6371,rad=Math.PI/180,dLat=(lat2-lat1)*rad,dLon=(lon2-lon1)*rad,a=Math.sin(dLat/2)**2+Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))}
 function distanceText(lat,lon){if(driverLocation?.lat==null||lat==null||lon==null)return "Đang lấy vị trí…";const km=distanceKm(driverLocation.lat,driverLocation.lon,Number(lat),Number(lon));return km<1?Math.round(km*1000)+" m":km.toFixed(1)+" km"}
 function startDriverGps(){if(driverGpsTimer)clearInterval(driverGpsTimer);const update=()=>{if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{driverLocation={lat:p.coords.latitude,lon:p.coords.longitude};renderDriverHome();},()=>{}, {enableHighAccuracy:true,maximumAge:0,timeout:5000})};update();driverGpsTimer=setInterval(update,3000)}
-function stopDriverGps(){if(driverGpsTimer)clearInterval(driverGpsTimer);driverGpsTimer=null}
+function stopDriverGps(){if(driverGpsTimer)clearInterval(driverGpsTimer);driverGpsTimer=null}function stopDriverPolling(){if(driverPollTimer)clearInterval(driverPollTimer);driverPollTimer=null}
 function driverOrderCard(o,canClaim){
  let action="";
  if(canClaim)action='<button class="btn" onclick="claim(\''+o.id+'\')">Nhận đơn</button>';
@@ -144,7 +144,7 @@ function renderDriverHome(){
  const waitHtml=waiting.length?waiting.map(o=>driverOrderCard(o,true)).join(""):'<div class="card"><span class="muted">Hiện chưa có đơn chờ nhận.</span></div>';
  app.innerHTML='<div class="hero"><div><div class="muted">NaGo Driver</div><h1>'+ (online?"🟢 Đang online":"⚪ Đang offline")+'</h1><div class="muted">Vị trí và đơn hàng được cập nhật tự động mỗi 3 giây.</div></div><button class="btn '+(online?"orange":"")+'" onclick="toggleOnline()">'+(online?"Tắt Online":"Bật Online")+'</button></div><div class="stats"><div class="stat">📦<div class="muted">Đang nhận</div><b>'+active.length+'</b></div><div class="stat">🛵<div class="muted">Chờ nhận</div><b>'+waiting.length+'</b></div><div class="stat">💵<div class="muted">COD chưa thu</div><b>'+cod.length+'</b></div><div class="stat">⭐<div class="muted">Đánh giá</div><b>'+driverRating.toFixed(1)+'</b></div></div><h3>Đơn đang nhận</h3>'+activeHtml+'<h3 style="margin-top:18px">Đơn chưa có tài xế</h3>'+waitHtml;
 }
-async function load(){try{await driverFetchOrders();renderDriverHome();}catch(e){app.innerHTML='<div class="card"><b>Không tải được đơn.</b><p class="muted">'+esc(e.message||"Lỗi tải dữ liệu")+'</p></div>'}}
+async function load(){try{await driverFetchOrders();renderDriverHome();if(online&&!driverPollTimer){driverPollTimer=setInterval(()=>{if(online&&document.querySelector(".nago-bottom-nav button.active")?.dataset.navKey==="home")load();},3000)}}catch(e){app.innerHTML='<div class="card"><b>Không tải được đơn.</b><p class="muted">'+esc(e.message||"Lỗi tải dữ liệu")+'</p></div>'}}
 async function renderDriverIncome(range="day"){
  const all=await driverFetchOrders(), mine=all.filter(o=>o.driver_id===user?.id&&o.status==="delivered"),now=new Date(),start=new Date(now);
  if(range==="day")start.setHours(0,0,0,0);if(range==="month"){start.setDate(1);start.setHours(0,0,0,0)}if(range==="year"){start.setMonth(0,1);start.setHours(0,0,0,0)}
@@ -155,7 +155,7 @@ async function renderDriverIncome(range="day"){
 function renderDriverPersonal(){
  app.innerHTML='<div class="hero"><div><div class="muted">NaGo Driver</div><h1>Cá nhân</h1></div></div><div class="card"><b>👤 Hồ sơ tài xế</b><div class="muted" style="margin-top:6px">'+esc(user?.email||"")+'</div><div class="muted">⭐ '+driverRating.toFixed(1)+' / 5</div><div class="muted">'+(approved?"Đã được Admin duyệt":"Chưa được duyệt")+'</div></div><div class="actions" style="margin-top:14px"><button class="btn gray" onclick="load()">↻ Làm mới dữ liệu</button><button class="btn red" onclick="logout()">Đăng xuất</button></div>';
 }
-function driverNav(key,btn){document.querySelectorAll(".nago-bottom-nav button").forEach(x=>x.classList.remove("active"));btn?.classList.add("active");stopDriverGps();if(key==="home"){if(online)startDriverGps();renderDriverHome()}if(key==="income")renderDriverIncome("day");if(key==="personal")renderDriverPersonal()}
+function driverNav(key,btn){document.querySelectorAll(".nago-bottom-nav button").forEach(x=>x.classList.remove("active"));btn?.classList.add("active");stopDriverGps();stopDriverPolling();if(key==="home"){if(online){startDriverGps();load()}else renderDriverHome()}if(key==="income")renderDriverIncome("day");if(key==="personal")renderDriverPersonal()}
 function filterDriverOrders(status){const list=document.getElementById("myOrderList");if(!list)return;const orders=window.driverOrders||[];const mine=orders.filter(o=>o.driver_id===user.id);const arr=status==="all"?mine:status==="active"?mine.filter(o=>["driver_assigned","picked_up","delivering"].includes(o.status)):status==="cod_unpaid"?mine.filter(o=>o.status==="delivered"&&o.payment_method==="cod"&&o.payment_status==="unpaid"):mine.filter(o=>o.status===status);list.innerHTML=arr.length?arr.map(o=>card(o,false)).join(""):'<div class="card"><span class="muted">Không có đơn ở bộ lọc này.</span></div>'}
 async function collectCod(id){
  if(!confirm('Xác nhận đã thu đủ tiền COD từ khách?'))return;
