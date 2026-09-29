@@ -163,10 +163,56 @@ function searchFood(){let q=document.getElementById('search').value.toLowerCase(
 function toast(t){let x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
 function showAuth(){document.getElementById('authModal').classList.add('show')}
 function closeAuth(){document.getElementById('authModal').classList.remove('show')}
-async function signUp(){const name=document.getElementById('authName').value.trim(),email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||password.length<6)return toast('Nhập email và mật khẩu từ 6 ký tự');const {error}=await nagoSupabase.auth.signUp({email,password,options:{data:{full_name:name}}});if(error)return toast(error.message);toast('Đăng ký thành công. Kiểm tra email nếu Supabase yêu cầu xác nhận.');}
-async function signIn(){const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;const {data,error}=await nagoSupabase.auth.signInWithPassword({email,password});if(error)return toast(error.message);currentUser=data.user;closeAuth();toast('Đăng nhập thành công');updateAccount();renderOrders()}
-async function signOut(){await nagoSupabase.auth.signOut();currentUser=null;updateAccount();renderOrders();toast('Đã đăng xuất')}
-function updateAccount(){const box=document.querySelector('#account .account-card');if(!box)return;if(currentUser){box.innerHTML=`<b>${currentUser.user_metadata?.full_name||currentUser.email}</b><div class="meta">${currentUser.email}</div><button class="primary" onclick="signOut()">Đăng xuất</button>`}else{box.innerHTML='<b>Khách hàng NaGo</b><div class="meta">Đăng nhập để lưu địa chỉ và đơn hàng</div><button class="primary" onclick="showAuth()">Đăng nhập / Đăng ký</button>'}}
+async function signUp(){
+  const name=document.getElementById('authName').value.trim();
+  const email=document.getElementById('authEmail').value.trim();
+  const password=document.getElementById('authPassword').value;
+  if(!email||password.length<6)return toast('Nhập email và mật khẩu từ 6 ký tự');
+  const {data,error}=await nagoSupabase.auth.signUp({email,password,options:{data:{full_name:name}}});
+  if(error)return toast(error.message);
+  if(data.session?.user){
+    currentUser=data.session.user;
+    closeAuth();
+    updateAccount();
+    await renderOrders();
+    toast('Tạo tài khoản và đăng nhập thành công');
+  }else{
+    toast('Đăng ký thành công. Hãy kiểm tra email để xác nhận tài khoản.');
+  }
+}
+async function signIn(){
+  const email=document.getElementById('authEmail').value.trim();
+  const password=document.getElementById('authPassword').value;
+  if(!email||!password)return toast('Nhập email và mật khẩu');
+  const {data,error}=await nagoSupabase.auth.signInWithPassword({email,password});
+  if(error){
+    if(/email not confirmed/i.test(error.message))return toast('Email chưa được xác nhận. Hãy kiểm tra hộp thư.');
+    return toast(error.message);
+  }
+  currentUser=data.user;
+  closeAuth();
+  updateAccount();
+  await renderOrders();
+  toast('Đăng nhập thành công');
+}
+async function signOut(){
+  const {error}=await nagoSupabase.auth.signOut();
+  if(error)return toast('Đăng xuất chưa thành công');
+  currentUser=null;
+  updateAccount();
+  await renderOrders();
+  toast('Đã đăng xuất');
+}
+function updateAccount(){
+  const box=document.querySelector('#account .account-card');
+  if(!box)return;
+  if(currentUser){
+    const name=currentUser.user_metadata?.full_name?.trim()||'Khách hàng NaGo';
+    box.innerHTML=`<b>${name}</b><div class="meta">${currentUser.email}</div><button class="primary" onclick="signOut()">Đăng xuất</button>`;
+  }else{
+    box.innerHTML='<b>Khách hàng NaGo</b><div class="meta">Đăng nhập để lưu địa chỉ và đơn hàng</div><button class="primary" onclick="showAuth()">Đăng nhập / Đăng ký</button>';
+  }
+}
 function render(){document.getElementById('restaurantList').innerHTML=restaurants.map(restaurantCard).join('');document.getElementById('homeRestaurants').innerHTML=restaurants.slice(0,2).map(restaurantCard).join('');updateCart();updateAccount()}
 (async()=>{const {data}=await nagoSupabase.auth.getSession();currentUser=data.session?.user||null;await loadRestaurants();renderOrders();nagoSupabase.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;updateAccount();renderOrders()})})();
 
