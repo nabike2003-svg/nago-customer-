@@ -132,34 +132,38 @@ main{padding:15px 13px 20px}.hero{position:relative;overflow:hidden;margin-botto
 <div class="modal" id="addressModal"><div class="sheet"><button class="close" onclick="closeAddressManager()">×</button><h2>📍 Địa chỉ giao hàng</h2><div id="addressList"></div><div class="account-card" style="margin-top:12px"><b>Thêm địa chỉ mới</b><div class="fields" style="margin-top:10px"><div class="field"><label>TÊN NGƯỜI NHẬN</label><input id="addrName" placeholder="Nguyễn Văn A"></div><div class="field"><label>SỐ ĐIỆN THOẠI</label><input id="addrPhone" placeholder="09xxxxxxxx"></div><div class="field"><label>TÊN GỌI</label><input id="addrLabel" value="Nhà" placeholder="Nhà, Công ty..."></div><div class="field"><label>ĐỊA CHỈ CHI TIẾT</label><input id="addrLine" placeholder="Số nhà, đường, phường/xã..."></div><button type="button" class="secondary" onclick="useCurrentLocation()">📍 Dùng vị trí hiện tại</button><div id="addrLocationStatus" class="meta" style="margin-top:7px">Có thể thêm vị trí để Driver chỉ đường chính xác hơn.</div></div><button class="primary" onclick="saveAddress()">Lưu địa chỉ</button></div></div></div><div class="modal" id="addressSelectModal"><div class="sheet"><button class="close" onclick="closeAddressSelect()">×</button><h2>📍 Chọn địa chỉ giao hàng</h2><div id="checkoutAddressList"></div><button class="primary" onclick="openAddressManagerFromCheckout()">+ Thêm địa chỉ mới</button></div></div><div class="modal" id="authModal"><div class="sheet">
   <button class="close" onclick="closeAuth()">×</button>
   <div class="auth-shell">
-    <div class="auth-brand"><div class="auth-logo">N</div><h2>NaGo Account</h2><p>Đăng nhập nhanh bằng số điện thoại</p></div>
+    <div class="auth-brand"><div class="auth-logo">N</div><h2>NaGo Account</h2><p>Xác thực email để bảo vệ tài khoản của bạn</p></div>
     <div class="auth-tabs">
       <button id="authTabLogin" class="auth-tab active" onclick="switchAuthMode('login')">Đăng nhập</button>
       <button id="authTabRegister" class="auth-tab" onclick="switchAuthMode('register')">Đăng ký</button>
     </div>
     <div id="authLoginPane" class="auth-pane active">
-      <div class="field"><label>SỐ ĐIỆN THOẠI</label><div class="phone-input"><span class="phone-prefix">+84</span><input id="loginPhone" inputmode="tel" placeholder="9xxxxxxxx" maxlength="10"></div></div>
-      <button class="primary" onclick="requestZaloOtp('login')">Gửi mã OTP qua Zalo</button>
-      <div class="auth-note">Mã xác thực sẽ được gửi qua Zalo Official Account của NaGo sau khi kết nối ZBS.</div>
-      <button class="auth-secondary" onclick="toggleEmailAuth()">Đăng nhập bằng email</button>
-      <div id="emailAuthBox" class="auth-email">
-        <div class="auth-divider"><span>Email hiện tại</span></div>
-        <div class="fields"><div class="field"><label>EMAIL</label><input id="authEmail" type="email" placeholder="email@example.com"></div><div class="field"><label>MẬT KHẨU</label><input id="authPassword" type="password" placeholder="Mật khẩu"></div></div>
-        <button class="primary" onclick="signIn()">Đăng nhập email</button>
+      <div class="fields">
+        <div class="field"><label>GMAIL</label><input id="authEmail" type="email" placeholder="ten@gmail.com" autocomplete="email"></div>
+        <div class="field"><label>MẬT KHẨU</label><input id="authPassword" type="password" placeholder="Mật khẩu" autocomplete="current-password"></div>
       </div>
+      <button class="primary" onclick="signIn()">Đăng nhập</button>
+      <div class="auth-note">Tài khoản NaGo hiện đăng nhập bằng Gmail và mật khẩu.</div>
       <button class="auth-link" onclick="switchAuthMode('register')">Chưa có tài khoản? Đăng ký</button>
     </div>
     <div id="authRegisterPane" class="auth-pane">
       <div class="fields">
-        <div class="field"><label>HỌ VÀ TÊN</label><input id="authName" placeholder="Tên của bạn"></div>
-        <div class="field"><label>SỐ ĐIỆN THOẠI</label><div class="phone-input"><span class="phone-prefix">+84</span><input id="registerPhone" inputmode="tel" placeholder="9xxxxxxxx" maxlength="10"></div></div>
+        <div class="field"><label>HỌ VÀ TÊN</label><input id="registerName" placeholder="Tên của bạn" autocomplete="name"></div>
+        <div class="field"><label>SỐ ĐIỆN THOẠI</label><input id="registerPhone" inputmode="tel" placeholder="09xxxxxxxx" maxlength="11" autocomplete="tel"></div>
+        <div class="field"><label>GMAIL</label><input id="registerEmail" type="email" placeholder="ten@gmail.com" autocomplete="email"></div>
+        <div class="field"><label>MẬT KHẨU</label><input id="registerPassword" type="password" placeholder="Ít nhất 6 ký tự" autocomplete="new-password"></div>
       </div>
-      <button class="primary" onclick="requestZaloOtp('register')">Gửi mã đăng ký qua Zalo</button>
-      <div class="auth-note">NaGo sẽ xác thực số điện thoại bằng OTP trên Zalo. Không cần nhớ mật khẩu.</div>
+      <button id="sendEmailOtpBtn" class="primary" onclick="sendEmailOtp()">📧 Gửi mã đến Gmail</button>
+      <div id="emailOtpArea" style="display:none;margin-top:10px">
+        <div class="field"><label>MÃ XÁC THỰC 6 SỐ</label><input id="registerOtp" inputmode="numeric" maxlength="6" placeholder="Nhập mã trong email" autocomplete="one-time-code"></div>
+        <button class="primary" onclick="verifyEmailOtpAndRegister()">✅ Xác thực và đăng ký</button>
+        <div class="auth-status" id="emailOtpStatus">Mã có hiệu lực 5 phút.</div>
+      </div>
+      <div class="auth-note">NaGo gửi một mã 6 số từ Gmail của NaGo đến Gmail bạn nhập. Chỉ nhập đúng mã mới được tạo tài khoản.</div>
       <button class="auth-link" onclick="switchAuthMode('login')">Đã có tài khoản? Đăng nhập</button>
     </div>
   </div>
-</div></div></div><div class="modal" id="orderDetailModal"><div class="sheet"><button class="close" onclick="closeOrderDetail()">×</button><div id="orderDetailContent"></div></div></div><div class="modal" id="reviewModal"><div class="sheet"><button class="close" onclick="closeReview()">×</button><div id="reviewContent"></div></div></div><div class="modal" id="cartModal"><div class="sheet"><button class="close" onclick="closeCart()">×</button><h2>🛒 Giỏ hàng</h2><div id="cartItems"></div><div class="row"><b>Tạm tính</b><b id="subtotal">0đ</b></div><div class="row"><span>Phí giao hàng</span><span id="deliveryFee">0đ</span></div><div class="field" style="margin-top:12px"><label>GHI CHÚ CHO QUÁN</label><input id="checkoutNote" placeholder="Ít cay, không hành..."></div><div class="location-permission"><b>📍 Vị trí giao hàng</b><div id="locationPermissionStatus" class="meta">Cần cấp quyền vị trí để NaGo xác định điểm giao hàng.</div><button id="checkoutLocationBtn" class="primary" style="margin-top:8px" onclick="requestDeliveryLocation(true)">📍 Cấp quyền vị trí để đặt hàng</button></div><div style="margin-top:12px"><b>💳 Phương thức thanh toán</b><div style="margin-top:8px;border:1px solid var(--green);background:#eef8f6;border-radius:13px;padding:12px"><b>💵 Thanh toán khi nhận hàng (COD)</b><div class="meta">Thanh toán trực tiếp cho tài xế khi nhận món.</div></div></div><div class="row"><b>Tổng</b><b id="grand">0đ</b></div><button class="primary" onclick="checkout()">Đặt hàng COD</button></div></div>
+</div></div><div class="modal" id="orderDetailModal"><div class="sheet"><button class="close" onclick="closeOrderDetail()">×</button><div id="orderDetailContent"></div></div></div><div class="modal" id="reviewModal"><div class="sheet"><button class="close" onclick="closeReview()">×</button><div id="reviewContent"></div></div></div><div class="modal" id="cartModal"><div class="sheet"><button class="close" onclick="closeCart()">×</button><h2>🛒 Giỏ hàng</h2><div id="cartItems"></div><div class="row"><b>Tạm tính</b><b id="subtotal">0đ</b></div><div class="row"><span>Phí giao hàng</span><span id="deliveryFee">0đ</span></div><div class="field" style="margin-top:12px"><label>GHI CHÚ CHO QUÁN</label><input id="checkoutNote" placeholder="Ít cay, không hành..."></div><div class="location-permission"><b>📍 Vị trí giao hàng</b><div id="locationPermissionStatus" class="meta">Cần cấp quyền vị trí để NaGo xác định điểm giao hàng.</div><button id="checkoutLocationBtn" class="primary" style="margin-top:8px" onclick="requestDeliveryLocation(true)">📍 Cấp quyền vị trí để đặt hàng</button></div><div style="margin-top:12px"><b>💳 Phương thức thanh toán</b><div style="margin-top:8px;border:1px solid var(--green);background:#eef8f6;border-radius:13px;padding:12px"><b>💵 Thanh toán khi nhận hàng (COD)</b><div class="meta">Thanh toán trực tiếp cho tài xế khi nhận món.</div></div></div><div class="row"><b>Tổng</b><b id="grand">0đ</b></div><button class="primary" onclick="checkout()">Đặt hàng COD</button></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -411,30 +415,48 @@ function normalizeVNPhone(value){
   if(v.startsWith('0'))v=v.slice(1);
   return v.length===9&&/^\d{9}$/.test(v)?'+84'+v:null;
 }
-function requestZaloOtp(mode){
-  const input=document.getElementById(mode==='login'?'loginPhone':'registerPhone');
-  const phone=normalizeVNPhone(input?.value);
-  if(!phone)return toast('Nhập số điện thoại Việt Nam hợp lệ');
-  toast('Zalo OTP đang chờ kết nối OA/ZBS của NaGo');
-  // Backend Zalo ZBS will be connected after OA/App/Template configuration.
+async function sendEmailOtp(){
+  const email=(document.getElementById('registerEmail')?.value||'').trim().toLowerCase();
+  const name=(document.getElementById('registerName')?.value||'').trim();
+  const password=document.getElementById('registerPassword')?.value||'';
+  if(!name)return toast('Nhập họ và tên');
+  if(!/^[^\\s@]+@gmail\\.com$/i.test(email))return toast('Nhập Gmail hợp lệ');
+  if(password.length<6)return toast('Mật khẩu phải có ít nhất 6 ký tự');
+  const btn=document.getElementById('sendEmailOtpBtn'); if(btn){btn.disabled=true;btn.textContent='Đang gửi mã...';}
+  const {data,error}=await nagoSupabase.functions.invoke('send-email-otp',{body:{email}});
+  if(btn){btn.disabled=false;btn.textContent='📧 Gửi lại mã đến Gmail';}
+  if(error)return toast(error.message||'Không thể gửi mã');
+  if(data?.error)return toast(data.error);
+  document.getElementById('emailOtpArea').style.display='block';
+  document.getElementById('emailOtpStatus').textContent='Đã gửi mã. Mã có hiệu lực 5 phút.';
+  toast('Đã gửi mã đến Gmail');
 }
-async function signUp(){
-  const name=document.getElementById('authName')?.value.trim()||'';
-  const email=document.getElementById('authEmail')?.value.trim()||'';
-  const password=document.getElementById('authPassword')?.value||'';
-  if(!email||password.length<6)return toast('Nhập email và mật khẩu từ 6 ký tự');
-  const {data,error}=await nagoSupabase.auth.signUp({email,password,options:{data:{full_name:name}}});
-  if(error)return toast(error.message);
+async function verifyEmailOtpAndRegister(){
+  const email=(document.getElementById('registerEmail')?.value||'').trim().toLowerCase();
+  const otp=(document.getElementById('registerOtp')?.value||'').trim();
+  const name=(document.getElementById('registerName')?.value||'').trim();
+  const phone=(document.getElementById('registerPhone')?.value||'').trim();
+  const password=document.getElementById('registerPassword')?.value||'';
+  if(!/^\\d{6}$/.test(otp))return toast('Nhập đúng mã 6 số trong Gmail');
+  const {data:verify,error:verifyError}=await nagoSupabase.rpc('verify_email_registration_otp',{p_email:email,p_otp:otp});
+  if(verifyError)return toast('Không thể xác thực mã');
+  const v=Array.isArray(verify)?verify[0]:verify;
+  if(!v?.ok){
+    const msg={EXPIRED:'Mã đã hết hạn. Hãy gửi mã mới.',TOO_MANY_ATTEMPTS:'Mã đã bị khóa. Hãy gửi mã mới.',INVALID_OTP:'Mã xác thực không đúng.',NOT_FOUND:'Mã không tồn tại hoặc đã hết hiệu lực.'}[v?.error_code]||'Mã xác thực không hợp lệ.';
+    return toast(msg);
+  }
+  const {data,error}=await nagoSupabase.auth.signUp({email,password,options:{data:{full_name:name,phone}});
+  if(error){
+    if(/already registered|already been registered/i.test(error.message))return toast('Gmail này đã có tài khoản. Hãy đăng nhập.');
+    return toast(error.message);
+  }
   if(data.session?.user){
-    currentUser=data.session.user;
-    closeAuth();
-    updateAccount();
-    await renderOrders();
-    toast('Tạo tài khoản và đăng nhập thành công');
+    currentUser=data.session.user;closeAuth();updateAccount();await renderOrders();toast('Xác thực Gmail và đăng ký thành công');
   }else{
-    toast('Đăng ký thành công. Hãy kiểm tra email để xác nhận tài khoản.');
+    toast('Đã xác thực Gmail. Kiểm tra email nếu hệ thống yêu cầu xác nhận tài khoản.');
   }
 }
+async function signUp(){return verifyEmailOtpAndRegister();}
 async function signIn(){
   const email=document.getElementById('authEmail')?.value.trim()||'';
   const password=document.getElementById('authPassword')?.value||'';
