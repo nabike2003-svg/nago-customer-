@@ -23,6 +23,14 @@ const db=window.supabase.createClient("https://rnyymflpnidkgetmdwwx.supabase.co"
 let user=null,online=false,approved=false,driverRealtime=null,driverStats={delivered:0,revenue:0,assigned:0},driverRating=5;const app=document.getElementById("app");
 const labels={ready_for_pickup:"Chờ tài xế",driver_assigned:"Đã nhận đơn",picked_up:"Đã lấy hàng",delivering:"Đang giao",delivered:"Đã giao"};
 const money=n=>new Intl.NumberFormat("vi-VN").format(Number(n)||0)+"đ";
+function notifyDriver(title,body){
+ try{if("Notification" in window&&Notification.permission==="granted")new Notification(title,{body,icon:"./manifest.webmanifest"});}catch(e){}
+ try{const a=new AudioContext(),o=a.createOscillator(),g=a.createGain();o.frequency.value=880;g.gain.value=.05;o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.16);}catch(e){}
+}
+async function enableDriverNotifications(){
+ if(!("Notification" in window))return;
+ if(Notification.permission==="default")try{await Notification.requestPermission()}catch(e){}
+}
 function startDriverRealtime(){
  if(driverRealtime)db.removeChannel(driverRealtime);
  driverRealtime=db.channel("nago-driver-orders")
@@ -31,7 +39,13 @@ function startDriverRealtime(){
      if(status==="ready_for_pickup"||payload.new?.driver_id===user?.id||payload.old?.driver_id===user?.id)load();
    }).subscribe();
 }
+function handleDriverRealtime(payload){
+ const n=payload.new||{}; const o=payload.old||{};
+ if(payload.eventType==="INSERT"&&n.status==="ready_for_pickup")notifyDriver("NaGo Driver","Có đơn mới đang chờ nhận.");
+ if(payload.eventType==="UPDATE"&&n.driver_id===user?.id&&n.status!==o.status)notifyDriver("NaGo Driver","Đơn #"+String(n.id).slice(0,8)+" → "+(labels[n.status]||n.status));
+}
 async function start(){
+ await enableDriverNotifications();
  const s=await db.auth.getSession();user=s.data.session?.user||null;
  if(!user)return login();
  await checkRoleAndLoad();
