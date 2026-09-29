@@ -187,13 +187,14 @@ async function load(){
    showLoadError(e.message||"Không tải được dữ liệu Merchant.");
  }
 }
+async function merchantAnalytics(){ const r=await db.rpc("merchant_dashboard"); return r.error?null:(r.data?.[0]||null); }
 function render(orders){
  const count=s=>orders.filter(o=>o.status===s).length;
  const shopName=shops.length===1?esc(shops[0].name):shops.length+" cửa hàng";
  let html='<div class="hero"><div><div class="muted">Xin chào</div><h1>'+shopName+'</h1><div class="muted">Theo dõi và xử lý đơn hàng theo thời gian thực.</div></div><div class="actions"><button class="btn" onclick="load()">↻ Làm mới</button><button class="btn gray" onclick="enableMerchantNotifications()">🔔 Thông báo đơn</button></div></div>';
- html+='<div class="stats"><div class="stat">🆕<div class="muted">Đơn mới</div><b>'+count("pending")+'</b></div><div class="stat">🍳<div class="muted">Đang chuẩn bị</div><b>'+count("preparing")+'</b></div><div class="stat">🛵<div class="muted">Chờ tài xế</div><b>'+count("ready_for_pickup")+'</b></div><div class="stat">✓<div class="muted">Đã giao</div><b>'+count("delivered")+'</b></div></div>';
+ html+='<div class="stats"><div class="stat">🆕<div class="muted">Đơn mới</div><b>'+count("pending")+'</b></div><div class="stat">🍳<div class="muted">Đang chuẩn bị</div><b>'+count("preparing")+'</b></div><div class="stat">🛵<div class="muted">Chờ tài xế</div><b>'+count("ready_for_pickup")+'</b></div><div class="stat">✓<div class="muted">Đã giao</div><b>'+count("delivered")+'</b></div></div><div id="analytics" class="card"><b>📊 Doanh thu & hiệu suất</b><div class="muted">Đang tải...</div></div>';
  html+='<div class="layout"><aside><div class="card"><b>Cửa hàng của tôi</b>'+shops.map(s=>'<div class="shop active"><b>'+esc(s.name)+'</b><div class="muted">'+esc(s.address||"Chưa có địa chỉ")+'</div><div class="muted">'+(s.is_active?"● Đang hoạt động":"○ Tạm ngưng")+'</div></div>').join("")+'</div></aside><section><div class="tabs"><button class="tab on" onclick="filterOrders(\'all\')">Tất cả</button><button class="tab" onclick="filterOrders(\'pending\')">Đơn mới</button><button class="tab" onclick="filterOrders(\'preparing\')">Đang làm</button><button class="tab" onclick="filterOrders(\'ready_for_pickup\')">Chờ tài xế</button></div><div id="orderList"></div></section></div>';
- app.innerHTML=html; window.merchantOrders=orders; filterOrders("all");
+ app.innerHTML=html; window.merchantOrders=orders; filterOrders("all"); merchantAnalytics().then(a=>{const el=document.getElementById("analytics");if(!el||!a)return;el.innerHTML="<b>📊 Doanh thu & hiệu suất</b><div class=\"stats\" style=\"margin-top:10px\"><div class=\"stat\"><div class=\"muted\">Tổng đơn</div><b>"+a.total_orders+"</b></div><div class=\"stat\"><div class=\"muted\">Đã giao</div><b>"+a.delivered_orders+"</b></div><div class=\"stat\"><div class=\"muted\">Đơn hủy</div><b>"+a.cancelled_orders+"</b></div><div class=\"stat\"><div class=\"muted\">Doanh thu đã giao</div><b>"+money(a.revenue_delivered)+"</b></div></div>";});
 }
 function filterOrders(status){
  const list=document.getElementById("orderList"); if(!list)return;
