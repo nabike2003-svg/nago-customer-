@@ -86,7 +86,17 @@ async function createStaff(){
  const role=document.getElementById('staffRole').value;
  if(!email||password.length<6)return note('Nhập email và mật khẩu từ 6 ký tự',true);
  const {data,error}=await nagoSupabase.functions.invoke('admin-create-staff-user',{body:{full_name:name,phone,email,password,role}});
- if(error){note(error.message||'Không tạo được tài khoản',true);return}
+ if(error){
+   let msg=error.message||'Không tạo được tài khoản';
+   try{
+     if(error.context && typeof error.context.json==='function'){
+       const body=await error.context.json();
+       if(body?.error)msg=body.error;
+     }
+   }catch(_){}
+   note(msg,true);
+   return;
+ }
  if(data?.error){note(data.error,true);return}
  document.getElementById('staffName').value='';
  document.getElementById('staffPhone').value='';
