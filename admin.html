@@ -20,7 +20,14 @@ main{max-width:1100px;margin:auto;padding:18px 14px 50px}.login,.panel,.stat{bac
 </style>
 </head>
 <body>
-<header><div class="brand">NaGo <b>Admin</b></div><button id="logout" class="ghost hidden" onclick="signOut()">Đăng xuất</button></header>
+<script>
+function adminHardLogout(){
+  try{localStorage.removeItem("nago_admin_auth")}catch(_){}
+  try{sessionStorage.removeItem("nago_admin_auth")}catch(_){}
+  window.location.href=window.location.pathname+"?login=1";
+}
+</script>
+<header><div class="brand">NaGo <b>Admin</b></div><button id="logout" class="ghost hidden" onclick="adminHardLogout()">Đăng xuất</button></header>
 <main>
 <section id="loginBox" class="login">
 <h1>Đăng nhập Admin</h1><p class="muted">Tài khoản phải được cấp role <b>admin</b>.</p>
@@ -63,19 +70,19 @@ async function resetPassword(){
 async function signIn(){
  const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;
  if(!email||!password){document.getElementById('loginMsg').innerHTML='<div class="error">Nhập email và mật khẩu.</div>';return}
- await nagoSupabase.auth.signOut();
+ try{await nagoSupabase.auth.signOut({scope:"local"})}catch(_){}
  const {data,error}=await nagoSupabase.auth.signInWithPassword({email,password});
  if(error){document.getElementById('loginMsg').innerHTML='<div class="error">'+esc(error.message)+'</div>';return}
  currentUser=data.user; await enter();
 }
-async function signOut(){await nagoSupabase.auth.signOut();currentUser=null;document.getElementById('app').classList.add('hidden');document.getElementById('loginBox').classList.remove('hidden');document.getElementById('logout').classList.add('hidden')}
+function signOut(){adminHardLogout()}
 async function enter(){
  const {data:sessionData}=await nagoSupabase.auth.getSession();
  currentUser=sessionData.session?.user||null;
  if(!currentUser){document.getElementById('app').classList.add('hidden');document.getElementById('loginBox').classList.remove('hidden');document.getElementById('logout').classList.add('hidden');return}
  const {data,error}=await nagoSupabase.rpc('admin_dashboard');
  if(error){
-   await nagoSupabase.auth.signOut();
+   try{await nagoSupabase.auth.signOut({scope:"local"})}catch(_){}
    currentUser=null;
    document.getElementById('app').classList.add('hidden');
    document.getElementById('loginBox').classList.remove('hidden');
@@ -151,6 +158,6 @@ async function assignDriver(orderId,driverId){
 }
 
 function showTab(t){document.getElementById('usersPanel').classList.toggle('hidden',t!=='users');document.getElementById('shopsPanel').classList.toggle('hidden',t!=='shops');document.getElementById('ordersPanel').classList.toggle('hidden',t!=='orders');document.getElementById('tabUsers').classList.toggle('active',t==='users');document.getElementById('tabShops').classList.toggle('active',t==='shops');document.getElementById('tabOrders').classList.toggle('active',t==='orders')}
-(async()=>{const {data}=await nagoSupabase.auth.getSession();currentUser=data.session?.user||null;if(window.location.hash.includes("type=recovery"))showRecovery();else if(currentUser)await enter();nagoSupabase.auth.onAuthStateChange((_e,s)=>{currentUser=s?.user||null;if(_e==="PASSWORD_RECOVERY"){showRecovery();return}if(currentUser&&!window.location.hash.includes("type=recovery"))enter()})})();
+(async()=>{const {data}=await nagoSupabase.auth.getSession();currentUser=data.session?.user||null;if(window.location.hash.includes("type=recovery"))showRecovery();else if(currentUser)await enter();nagoSupabase.auth.onAuthStateChange((_e,s)=>{currentUser=s?.user||null;if(_e==="PASSWORD_RECOVERY"){showRecovery();return}if(_e==="SIGNED_OUT"){return}if(currentUser&&!window.location.hash.includes("type=recovery"))enter()})})();
 </script>
 </body></html>
