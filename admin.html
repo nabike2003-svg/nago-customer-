@@ -35,17 +35,17 @@ main{max-width:1100px;margin:auto;padding:18px 14px 50px}.login,.panel,.stat{bac
 <div id="stats" class="grid" style="margin-top:16px"></div>
 <div class="tabs">
 <button class="ghost active" id="tabUsers" onclick="showTab('users')">Người dùng</button>
-<button class="ghost" id="tabShops" onclick="showTab('shops')">Cửa hàng</button>
+<button class="ghost" id="tabShops" onclick="showTab('shops')">Cửa hàng</button><button class="ghost" id="tabOrders" onclick="showTab('orders')">Đơn hàng</button>
 </div>
 <div id="usersPanel" class="panel"></div>
-<div id="shopsPanel" class="panel hidden"></div>
+<div id="shopsPanel" class="panel hidden"></div><div id="ordersPanel" class="panel hidden"></div>
 </section>
 </main>
 <script>
 const SUPABASE_URL="https://rnyymflpnidkgetmdwwx.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx";
 const nagoSupabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
-let currentUser=null, users=[], shops=[];
+let currentUser=null, users=[], shops=[], orders=[], drivers=[];
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const money=v=>new Intl.NumberFormat('vi-VN').format(Number(v)||0)+'đ';
 function note(s,err=false){document.getElementById('msg').innerHTML=s?'<div class="error" style="'+(err?'':'background:#e9faf5;color:#18794e')+'">'+esc(s)+'</div>':''}
@@ -62,9 +62,9 @@ async function enter(){
  document.getElementById('loginBox').classList.add('hidden');document.getElementById('app').classList.remove('hidden');document.getElementById('logout').classList.remove('hidden');await loadAll();
 }
 async function loadAll(){
- const [d,u,s]=await Promise.all([nagoSupabase.rpc('admin_dashboard'),nagoSupabase.rpc('admin_list_users'),nagoSupabase.rpc('admin_list_shops')]);
- if(d.error||u.error||s.error){note((d.error||u.error||s.error).message,true);return}
- users=u.data||[];shops=s.data||[];renderStats(d.data||{});renderUsers();renderShops();
+ const [d,u,s,o,dr]=await Promise.all([nagoSupabase.rpc('admin_dashboard'),nagoSupabase.rpc('admin_list_users'),nagoSupabase.rpc('admin_list_shops'),nagoSupabase.rpc('admin_list_orders'),nagoSupabase.rpc('admin_list_approved_drivers')]);
+ if(d.error||u.error||s.error||o.error||dr.error){note((d.error||u.error||s.error||o.error||dr.error).message,true);return}
+ users=u.data||[];shops=s.data||[];orders=o.data||[];drivers=dr.data||[];renderStats(d.data||{});renderUsers();renderShops();renderOrders();
 }
 function renderStats(x){const a=[['Người dùng',x.users],['Merchant',x.merchants],['Driver',x.drivers],['Đã duyệt tài xế',x.approved_drivers],['Cửa hàng',x.shops],['Shop đang bật',x.active_shops],['Đơn hàng',x.orders],['Đơn chờ xử lý',x.pending_orders]];document.getElementById('stats').innerHTML=a.map(([k,v])=>'<div class="stat"><div class="muted">'+k+'</div><strong>'+Number(v||0)+'</strong></div>').join('')}
 function renderUsers(){
@@ -82,7 +82,23 @@ async function setRole(id,role){const {error}=await nagoSupabase.rpc('admin_set_
 async function approveDriver(id,ok){const {error}=await nagoSupabase.rpc('admin_set_driver_approval',{p_user_id:id,p_approved:ok});if(error){note(error.message,true);return}note(ok?'Đã duyệt tài xế':'Đã tắt duyệt tài xế');await loadAll()}
 async function assignShop(id,owner){const {error}=await nagoSupabase.rpc('admin_assign_shop',{p_shop_id:id,p_owner_id:owner||null});if(error){note(error.message,true);await loadAll();return}note('Đã cập nhật chủ shop');await loadAll()}
 async function setShopActive(id,ok){const {error}=await nagoSupabase.rpc('admin_set_shop_active',{p_shop_id:id,p_active:ok});if(error){note(error.message,true);return}note(ok?'Đã bật shop':'Đã tắt shop');await loadAll()}
-function showTab(t){document.getElementById('usersPanel').classList.toggle('hidden',t!=='users');document.getElementById('shopsPanel').classList.toggle('hidden',t!=='shops');document.getElementById('tabUsers').classList.toggle('active',t==='users');document.getElementById('tabShops').classList.toggle('active',t==='shops')}
+function renderOrders(){
+ const el=document.getElementById('ordersPanel');
+ if(!orders.length){el.innerHTML='<div class="empty">Chưa có đơn hàng</div>';return}
+ el.innerHTML='<div class="topline"><h2>Điều hành đơn hàng</h2><span class="muted">'+orders.length+' đơn gần nhất</span></div><div class="tablewrap"><div class="row head"><div>Đơn hàng</div><div>Khách / Shop</div><div>Trạng thái</div><div>Tài xế</div><div>Thao tác</div></div>'+orders.map(o=>{
+ const can=['ready_for_pickup','driver_assigned'].includes(o.status);
+ const opts=drivers.map(d=>'<option value="'+d.id+'" '+(o.driver_id===d.id?'selected':'')+'>'+esc(d.full_name||d.phone||d.id)+(d.is_online?' • Online':' • Offline')+'</option>').join('');
+ return '<div class="row"><div><b>#'+esc(o.id.slice(0,8))+'</b><div class="muted">'+new Date(o.created_at).toLocaleString('vi-VN')+'</div><div>'+money(o.total)+'</div></div><div><b>'+esc(o.customer_name||o.customer_email||'Khách')+'</b><div class="muted">'+esc(o.shop_name||'')+'</div></div><div><span class="badge '+(['delivered'].includes(o.status)?'ok':(['cancelled','rejected','failed'].includes(o.status)?'off':'warn'))+'">'+esc(o.status)+'</span><div class="muted">'+esc(o.payment_method||'')+' • '+esc(o.payment_status||'')+'</div></div><div>'+esc(o.driver_name||'Chưa có')+(o.driver_email?'<div class="muted">'+esc(o.driver_email)+'</div>':'')+'</div><div>'+(can?'<select onchange="assignDriver(\\''+o.id+'\\',this.value)"><option value="">Chọn tài xế</option>'+opts+'</select>':'<span class="muted">—</span>')+'</div></div>'
+ }).join('')+'</div>';
+}
+async function assignDriver(orderId,driverId){
+ if(!driverId)return;
+ const {error}=await nagoSupabase.rpc('admin_assign_driver',{p_order_id:orderId,p_driver_id:driverId});
+ if(error){note(error.message,true);await loadAll();return}
+ note('Đã phân công tài xế');await loadAll();
+}
+
+function showTab(t){document.getElementById('usersPanel').classList.toggle('hidden',t!=='users');document.getElementById('shopsPanel').classList.toggle('hidden',t!=='shops');document.getElementById('ordersPanel').classList.toggle('hidden',t!=='orders');document.getElementById('tabUsers').classList.toggle('active',t==='users');document.getElementById('tabShops').classList.toggle('active',t==='shops');document.getElementById('tabOrders').classList.toggle('active',t==='orders')}
 (async()=>{const {data}=await nagoSupabase.auth.getSession();currentUser=data.session?.user||null;if(currentUser)await enter();nagoSupabase.auth.onAuthStateChange((_e,s)=>{currentUser=s?.user||null;if(currentUser)enter()})})();
 </script>
 </body></html>
