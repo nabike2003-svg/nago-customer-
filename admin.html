@@ -176,6 +176,7 @@ async function setRole(id,role){const {error}=await nagoSupabase.rpc('admin_set_
 async function approveDriver(id,ok){const {error}=await nagoSupabase.rpc('admin_set_driver_approval',{p_user_id:id,p_approved:ok});if(error){note(error.message,true);return}note(ok?'Đã duyệt tài xế':'Đã tắt duyệt tài xế');await loadAll()}
 async function assignShop(id,owner){const {error}=await nagoSupabase.rpc('admin_assign_shop',{p_shop_id:id,p_owner_id:owner||null});if(error){note(error.message,true);await loadAll();return}note('Đã cập nhật chủ shop');await loadAll()}
 async function setShopActive(id,ok){const {error}=await nagoSupabase.rpc('admin_set_shop_active',{p_shop_id:id,p_active:ok});if(error){note(error.message,true);return}note(ok?'Đã bật shop':'Đã tắt shop');await loadAll()}
+function adminStatusBadge(status,payment){if(status==='delivered')return payment==='unpaid'?'warn':'ok';if(['cancelled','rejected','failed'].includes(status))return 'off';return 'warn'}
 function renderOrders(){
  const el=document.getElementById('ordersPanel');
  if(!orders.length){el.innerHTML='<div class="empty">Chưa có đơn hàng</div>';return}
