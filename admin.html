@@ -44,7 +44,7 @@ function adminHardLogout(){
 <button class="ghost active" id="tabUsers" onclick="showTab('users')">Người dùng</button>
 <button class="ghost" id="tabShops" onclick="showTab('shops')">Cửa hàng</button><button class="ghost" id="tabOrders" onclick="showTab('orders')">Đơn hàng</button>
 </div>
-<div id="usersPanel" class="panel"></div>
+<div id="attentionPanel"></div><div id="usersPanel" class="panel"></div>
 <div id="shopsPanel" class="panel hidden"></div><div id="ordersPanel" class="panel hidden"></div>
 </section>
 <div id="orderModal" class="modal" onclick="if(event.target===this)closeOrderDetail()"><div class="modal-card"><div class="modal-head"><div><b>Chi tiết đơn hàng</b><div id="detailSubtitle" class="muted"></div></div><button class="close" onclick="closeOrderDetail()">✕</button></div><div id="orderDetail" style="margin-top:14px"></div></div></div>
@@ -110,7 +110,16 @@ function startAdminRealtime(){
 async function loadAll(){
  const [d,u,s,o,dr,a]=await Promise.all([nagoSupabase.rpc('admin_dashboard'),nagoSupabase.rpc('admin_list_users'),nagoSupabase.rpc('admin_list_shops'),nagoSupabase.rpc('admin_list_orders'),nagoSupabase.rpc('admin_list_approved_drivers'),nagoSupabase.rpc('admin_analytics')]);
  if(d.error||u.error||s.error||o.error||dr.error||a.error){note((d.error||u.error||s.error||o.error||dr.error||a.error).message,true);return}
- users=u.data||[];shops=s.data||[];orders=o.data||[];drivers=dr.data||[];renderStats(d.data||{},a.data?.[0]||{});renderUsers();renderShops();renderOrders();
+ users=u.data||[];shops=s.data||[];orders=o.data||[];drivers=dr.data||[];renderStats(d.data||{},a.data?.[0]||{});renderAttention();renderUsers();renderShops();renderOrders();
+}
+function renderAttention(){
+ const waiting=orders.filter(o=>o.status==="ready_for_pickup");
+ const shopPending=orders.filter(o=>["pending","shop_accepted","preparing"].includes(o.status));
+ const cod=orders.filter(o=>o.status==="delivered"&&o.payment_method==="cod"&&o.payment_status==="unpaid");
+ const count=waiting.length+shopPending.length+cod.length;
+ const host=document.getElementById("attentionPanel");
+ if(!host)return;
+ host.innerHTML='<details class="section"'+(count?' open':'')+'><summary>⚠️ Cần xử lý <span class="section-note">'+count+' mục</span></summary><div class="section-body"><div class="actions">'+(shopPending.length?'<span class="badge warn">'+shopPending.length+' đơn quán đang xử lý</span>':'')+(waiting.length?'<span class="badge warn">'+waiting.length+' đơn chờ tài xế</span>':'')+(cod.length?'<span class="badge warn">'+cod.length+' COD chưa thu</span>':'')+'</div><div class="muted" style="margin-top:8px">'+(count?'Có đơn cần điều phối hoặc kiểm tra.':'Không có việc tồn đọng.')+'</div></div></details>';
 }
 function renderStats(x,a){
  const data=a||{};
