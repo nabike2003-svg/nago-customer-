@@ -113,13 +113,19 @@ async function loadAll(){
  users=u.data||[];shops=s.data||[];orders=o.data||[];drivers=dr.data||[];renderStats(d.data||{},a.data?.[0]||{});renderAttention();renderUsers();renderShops();renderOrders();
 }
 function renderAttention(){
+ const now=Date.now(),ageMin=o=>Math.floor((now-new Date(o.created_at).getTime())/60000);
  const waiting=orders.filter(o=>o.status==="ready_for_pickup");
  const shopPending=orders.filter(o=>["pending","shop_accepted","preparing"].includes(o.status));
  const cod=orders.filter(o=>o.status==="delivered"&&o.payment_method==="cod"&&o.payment_status==="unpaid");
+ const stalePending=orders.filter(o=>(o.status==="pending"&&ageMin(o)>=15)||(o.status==="shop_accepted"&&ageMin(o)>=20)||(o.status==="preparing"&&ageMin(o)>=30));
+ const staleReady=orders.filter(o=>o.status==="ready_for_pickup"&&ageMin(o)>=20);
+ const staleDelivery=orders.filter(o=>["driver_assigned","picked_up","delivering"].includes(o.status)&&ageMin(o)>=60);
  const count=waiting.length+shopPending.length+cod.length;
- const host=document.getElementById("attentionPanel");
- if(!host)return;
- host.innerHTML='<details class="section"'+(count?' open':'')+'><summary>⚠️ Cần xử lý <span class="section-note">'+count+' mục</span></summary><div class="section-body"><div class="actions">'+(shopPending.length?'<span class="badge warn">'+shopPending.length+' đơn quán đang xử lý</span>':'')+(waiting.length?'<span class="badge warn">'+waiting.length+' đơn chờ tài xế</span>':'')+(cod.length?'<span class="badge warn">'+cod.length+' COD chưa thu</span>':'')+'</div><div class="muted" style="margin-top:8px">'+(count?'Có đơn cần điều phối hoặc kiểm tra.':'Không có việc tồn đọng.')+'</div></div></details>';
+ const critical=stalePending.length+staleReady.length+staleDelivery.length;
+ const host=document.getElementById("attentionPanel");if(!host)return;
+ const badge=(n,label,cls="warn")=>n?'<span class="badge '+cls+'">'+n+' '+label+'</span>':'';
+ const staleRows=[...stalePending.map(o=>({o,label:"Quán xử lý quá lâu"})),...staleReady.map(o=>({o,label:"Chờ tài xế quá lâu"})),...staleDelivery.map(o=>({o,label:"Đang giao quá lâu"}))];
+ host.innerHTML='<details class="section"'+(count||critical?' open':'')+'><summary>⚠️ Cần xử lý <span class="section-note">'+(count+critical)+' cảnh báo</span></summary><div class="section-body"><div class="actions">'+badge(shopPending.length,"đơn quán đang xử lý")+badge(waiting.length,"đơn chờ tài xế")+badge(cod.length,"COD chưa thu")+(critical?badge(critical,"đơn quá thời gian","off"):"")+'</div>'+(staleRows.length?'<h4 style="margin:14px 0 8px">⏱️ Cần kiểm tra ngay</h4>'+staleRows.slice(0,12).map(x=>'<div class="detail-box" style="margin:6px 0"><div class="topline"><b>#'+esc(String(x.o.id).slice(0,8))+' · '+esc(x.label)+'</b><span class="badge off">'+ageMin(x.o)+' phút</span></div><div class="muted">'+esc(x.o.shop_name||"")+' · '+esc(x.o.customer_name||x.o.customer_email||"Khách")+'</div><button class="detail-btn" style="margin-top:7px" onclick="openOrderDetail(\''+x.o.id+'\')">👁 Xem đơn</button></div>').join(''):'<div class="muted" style="margin-top:8px">Không có đơn vượt ngưỡng thời gian.</div>')+'<div class="muted" style="margin-top:8px">Ngưỡng theo dõi: quán 15–30 phút, chờ tài xế 20 phút, giao 60 phút.</div></div></details>';
 }
 function renderStats(x,a){
  const data=a||{};
