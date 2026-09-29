@@ -38,7 +38,7 @@ try{
   console.error("NaGo Merchant Supabase init error",e);
   db=null;
 }
-const app=document.getElementById("app");
+let app=null;
 let user=null,shops=[],merchantRealtime=null,authListener=null,merchantAudio=null,merchantNotifiedOrders=new Set();
 const MERCHANT_STORAGE_KEY="nago_merchant_auth";
 const labels={pending:"Đã đặt",shop_accepted:"Quán đã nhận",preparing:"Đang chuẩn bị",ready_for_pickup:"Chờ tài xế",driver_assigned:"Đã có tài xế",picked_up:"Đã lấy hàng",delivering:"Đang giao",delivered:"Đã giao",rejected:"Đã từ chối",cancelled:"Đã hủy"};
@@ -69,6 +69,8 @@ function showLoadError(message){
 }
 let merchantBootTimer=setTimeout(()=>{try{if(document.getElementById("app")?.textContent.includes("Đang kết nối dữ liệu")){showLoadError("Kết nối Merchant quá thời gian chờ. Hãy tải lại hoặc đăng xuất để tạo phiên mới.");}}catch(_){ }},15000);
 async function start(){
+ app=document.getElementById("app");
+ if(!app){setTimeout(start,50);return}
  try{
    if(!db){
      login("Không khởi tạo được kết nối hệ thống. Hãy tải lại trang.");
