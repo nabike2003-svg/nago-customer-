@@ -44,7 +44,7 @@ function adminHardLogout(){
 <button class="ghost active" id="tabUsers" onclick="showTab('users')">Người dùng</button>
 <button class="ghost" id="tabShops" onclick="showTab('shops')">Cửa hàng</button><button class="ghost" id="tabOrders" onclick="showTab('orders')">Đơn hàng</button>
 </div>
-<div id="attentionPanel"></div><details class="section" id="driverReportPanel"><summary>🛵 Báo cáo tài xế <span class="section-note">7 ngày</span></summary><div class="section-body"><div class="actions"><button class="btn" onclick="loadDriverReport(7)">7 ngày</button><button class="btn gray" onclick="loadDriverReport(30)">30 ngày</button><button class="btn gray" onclick="loadDriverReport(90)">90 ngày</button></div><div id="driverReport"><div class="muted" style="margin-top:10px">Bấm một mốc thời gian để xem.</div></div></div></details><details class="section" id="operationsReportPanel"><summary>📊 Báo cáo vận hành <span class="section-note">7 ngày</span></summary><div class="section-body"><div class="actions"><button class="btn" onclick="loadOperationsReport(7)">7 ngày</button><button class="btn gray" onclick="loadOperationsReport(30)">30 ngày</button><button class="btn gray" onclick="loadOperationsReport(90)">90 ngày</button></div><div id="operationsReport"><div class="muted" style="margin-top:10px">Bấm một mốc thời gian để xem báo cáo.</div></div><div id="operationsTrend"></div></div></details><div id="usersPanel" class="panel"></div>
+<div id="attentionPanel"></div><details class="section compact"><summary>📝 Lịch sử xử lý cảnh báo <span class="section-note">50 gần nhất</span></summary><div class="section-body"><div id="alertHistory"><div class="muted">Đang tải...</div></div></div></details><details class="section" id="driverReportPanel"><summary>🛵 Báo cáo tài xế <span class="section-note">7 ngày</span></summary><div class="section-body"><div class="actions"><button class="btn" onclick="loadDriverReport(7)">7 ngày</button><button class="btn gray" onclick="loadDriverReport(30)">30 ngày</button><button class="btn gray" onclick="loadDriverReport(90)">90 ngày</button></div><div id="driverReport"><div class="muted" style="margin-top:10px">Bấm một mốc thời gian để xem.</div></div></div></details><details class="section" id="operationsReportPanel"><summary>📊 Báo cáo vận hành <span class="section-note">7 ngày</span></summary><div class="section-body"><div class="actions"><button class="btn" onclick="loadOperationsReport(7)">7 ngày</button><button class="btn gray" onclick="loadOperationsReport(30)">30 ngày</button><button class="btn gray" onclick="loadOperationsReport(90)">90 ngày</button></div><div id="operationsReport"><div class="muted" style="margin-top:10px">Bấm một mốc thời gian để xem báo cáo.</div></div><div id="operationsTrend"></div></div></details><div id="usersPanel" class="panel"></div>
 <div id="shopsPanel" class="panel hidden"></div><div id="ordersPanel" class="panel hidden"></div>
 </section>
 <div id="orderModal" class="modal" onclick="if(event.target===this)closeOrderDetail()"><div class="modal-card"><div class="modal-head"><div><b>Chi tiết đơn hàng</b><div id="detailSubtitle" class="muted"></div></div><button class="close" onclick="closeOrderDetail()">✕</button></div><div id="orderDetail" style="margin-top:14px"></div></div></div>
@@ -110,7 +110,21 @@ function startAdminRealtime(){
 async function loadAll(){
  const [d,u,s,o,dr,a]=await Promise.all([nagoSupabase.rpc('admin_dashboard'),nagoSupabase.rpc('admin_list_users'),nagoSupabase.rpc('admin_list_shops'),nagoSupabase.rpc('admin_list_orders'),nagoSupabase.rpc('admin_list_approved_drivers'),nagoSupabase.rpc('admin_analytics')]);
  if(d.error||u.error||s.error||o.error||dr.error||a.error){note((d.error||u.error||s.error||o.error||dr.error||a.error).message,true);return}
- users=u.data||[];shops=s.data||[];orders=o.data||[];drivers=dr.data||[];renderStats(d.data||{},a.data?.[0]||{});renderAttention();renderUsers();renderShops();renderOrders();
+ users=u.data||[];shops=s.data||[];orders=o.data||[];drivers=dr.data||[];renderStats(d.data||{},a.data?.[0]||{});await loadAlertHistory();renderAttention();renderUsers();renderShops();renderOrders();
+}
+async function handleAdminAlert(orderId,type){
+ const {error}=await nagoSupabase.rpc('admin_handle_alert',{p_order_id:orderId,p_alert_type:type,p_note:null});
+ if(error){note(error.message,true);return}
+ window.adminHandledAlerts=window.adminHandledAlerts||{};window.adminHandledAlerts[orderId+'|'+type]=true;
+ renderAttention();await loadAlertHistory();note('Đã ghi nhận xử lý cảnh báo');
+}
+async function loadAlertHistory(){
+ const el=document.getElementById('alertHistory');if(!el)return;
+ const {data,error}=await nagoSupabase.rpc('admin_alert_history',{p_limit:50});
+ if(error){el.innerHTML='<div class="error">'+esc(error.message)+'</div>';return}
+ window.adminHandledAlerts={};
+ (data||[]).forEach(x=>window.adminHandledAlerts[x.order_id+'|'+x.alert_type]=true);
+ el.innerHTML=(data||[]).length?data.map(x=>'<div class="detail-box" style="margin:6px 0"><div class="topline"><b>#'+esc(String(x.order_id).slice(0,8))+' · '+esc(x.alert_type)+'</b><span class="muted">'+new Date(x.handled_at).toLocaleString('vi-VN')+'</span></div><div class="muted">Trạng thái lúc xử lý: '+esc(x.order_status)+' · '+esc(x.handled_by_name||'Admin')+'</div></div>').join(''):'<div class="muted">Chưa có lịch sử xử lý.</div>';
 }
 function renderAttention(){
  const now=Date.now(),ageMin=o=>Math.floor((now-new Date(o.created_at).getTime())/60000);
@@ -124,6 +138,10 @@ function renderAttention(){
  const critical=stalePending.length+staleReady.length+staleDelivery.length;
  const host=document.getElementById("attentionPanel");if(!host)return;
  const badge=(n,label,cls="warn")=>n?'<span class="badge '+cls+'">'+n+' '+label+'</span>':'';
+ const handled=window.adminHandledAlerts||{};
+ const alertKey=(o,t)=>o.id+'|'+t;
+ const isHandled=(o,t)=>!!handled[alertKey(o,t)];
+
  const staleRows=[...stalePending.map(o=>({o,label:"Quán xử lý quá lâu"})),...staleReady.map(o=>({o,label:"Chờ tài xế quá lâu"})),...staleDelivery.map(o=>({o,label:"Đang giao quá lâu"}))];
  host.innerHTML='<details class="section"'+(count||critical?' open':'')+'><summary>⚠️ Cần xử lý <span class="section-note">'+(count+critical)+' cảnh báo</span></summary><div class="section-body"><div class="actions">'+badge(shopPending.length,"đơn quán đang xử lý")+badge(waiting.length,"đơn chờ tài xế")+badge(cod.length,"COD chưa thu")+(critical?badge(critical,"đơn quá thời gian","off"):"")+'</div>'+(staleRows.length?'<h4 style="margin:14px 0 8px">⏱️ Cần kiểm tra ngay</h4>'+staleRows.slice(0,12).map(x=>'<div class="detail-box" style="margin:6px 0"><div class="topline"><b>#'+esc(String(x.o.id).slice(0,8))+' · '+esc(x.label)+'</b><span class="badge off">'+ageMin(x.o)+' phút</span></div><div class="muted">'+esc(x.o.shop_name||"")+' · '+esc(x.o.customer_name||x.o.customer_email||"Khách")+'</div><button class="detail-btn" style="margin-top:7px" onclick="openOrderDetail(\''+x.o.id+'\')">👁 Xem đơn</button></div>').join(''):'<div class="muted" style="margin-top:8px">Không có đơn vượt ngưỡng thời gian.</div>')+'<div class="muted" style="margin-top:8px">Ngưỡng theo dõi: quán 15–30 phút, chờ tài xế 20 phút, giao 60 phút.</div></div></details>';
 }
