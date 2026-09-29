@@ -199,16 +199,18 @@ function renderMerchantHome(){
  const count=s=>today.filter(o=>o.status===s).length;
  const cod=today.filter(o=>o.status==="delivered"&&o.payment_method==="cod"&&o.payment_status==="unpaid").length;
  const statuses=[["pending","🆕 Đơn mới"],["shop_accepted","✓ Quán đã nhận"],["preparing","🍳 Đang chuẩn bị"],["ready_for_pickup","🛵 Chờ tài xế"],["driver_assigned","🚗 Đã có tài xế"],["picked_up","📦 Đã lấy hàng"],["delivering","🛵 Đang giao"],["delivered","✅ Đã giao"],["cancelled","✕ Đã hủy"],["rejected","⛔ Từ chối"]];
- merchantRenderShell("Trang chủ",'<div class="stats">'+statuses.map(x=>'<div class="stat"><div class="muted">'+x[1]+'</div><b>'+count(x[0])+'</b></div>').join('')+'</div><div class="card" style="margin-top:14px"><b>Hôm nay</b><div class="muted" style="margin-top:6px">'+today.length+' đơn · '+money(today.filter(o=>o.status==="delivered").reduce((s,o)=>s+Number(o.total||0),0))+' doanh thu đã giao'+(cod?' · '+cod+' COD chưa thu':'')+'</div></div>');
+ const allRevenue=all.filter(o=>o.status==="delivered").reduce((s,o)=>s+Number(o.total||0),0);
+ merchantRenderShell("Trang chủ",'<div class="card" style="margin-bottom:14px;border:1px solid var(--line)"><b>🟢 Đã kết nối dữ liệu bán hàng</b><div class="muted" style="margin-top:5px">'+all.length+' đơn trong hệ thống · '+money(allRevenue)+' doanh thu đã giao</div></div><div class="stats">'+statuses.map(x=>'<div class="stat"><div class="muted">'+x[1]+'</div><b>'+count(x[0])+'</b></div>').join('')+'</div><div class="card" style="margin-top:14px"><b>Hôm nay</b><div class="muted" style="margin-top:6px">'+today.length+' đơn · '+money(today.filter(o=>o.status==="delivered").reduce((s,o)=>s+Number(o.total||0),0))+' doanh thu đã giao'+(cod?' · '+cod+' COD chưa thu':'')+'</div></div>');
 }
 async function merchantLoadRange(range){
- const ids=shops.map(x=>x.id); if(!ids.length)return [];
+ const all=Array.isArray(window.merchantOrders)?window.merchantOrders:[];
  const now=new Date(), start=new Date(now);
  if(range==="day")start.setHours(0,0,0,0);
  if(range==="month"){start.setDate(1);start.setHours(0,0,0,0)}
  if(range==="year"){start.setMonth(0,1);start.setHours(0,0,0,0)}
- const {data,error}=await db.from("orders").select("id,shop_id,status,subtotal,delivery_fee,discount,total,payment_method,payment_status,created_at,address:user_addresses(label,recipient_name,phone,address_line),items:order_items(product_name,quantity,unit_price,line_total)").in("shop_id",ids).gte("created_at",start.toISOString()).order("created_at",{ascending:false}).limit(5000);
- if(error){alert(error.message);return []} return data||[];
+ return all
+   .filter(o=>new Date(o.created_at).getTime()>=start.getTime())
+   .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
 }
 async function renderMerchantOrders(range="day"){
  const orders=await merchantLoadRange(range);
