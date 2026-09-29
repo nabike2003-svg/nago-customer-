@@ -44,7 +44,7 @@ main{max-width:1100px;margin:auto;padding:18px 14px 50px}.login,.panel,.stat{bac
 <script>
 const SUPABASE_URL="https://rnyymflpnidkgetmdwwx.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx";
-const nagoSupabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const nagoSupabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{storageKey:"nago_admin_auth",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 let currentUser=null, users=[], shops=[], orders=[], drivers=[];
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const money=v=>new Intl.NumberFormat('vi-VN').format(Number(v)||0)+'đ';
