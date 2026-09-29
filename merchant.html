@@ -47,6 +47,15 @@ function showLoadError(message){
 }
 async function start(){
  try{
+   const forceLogin=new URLSearchParams(window.location.search).get("login")==="1";
+   if(forceLogin){
+     try{localStorage.removeItem(MERCHANT_STORAGE_KEY)}catch(_){}
+     try{sessionStorage.removeItem(MERCHANT_STORAGE_KEY)}catch(_){}
+     try{await withTimeout(db.auth.signOut({scope:"local"}),3000,"LOGOUT_TIMEOUT")}catch(_){}
+     user=null;
+     login("Đã đăng xuất. Hãy đăng nhập lại bằng tài khoản nhà bán hàng.");
+     return;
+   }
    const s=await withTimeout(db.auth.getSession(),7000,"Phiên đăng nhập bị treo hoặc hết thời gian.");
    user=s.data.session?.user||null;
    if(!user){login();return}
