@@ -12,7 +12,7 @@ header{background:var(--n);color:#fff;position:sticky;top:0;z-index:10}.top{max-
 <main class="wrap" id="app"><div class="card">Đang tải...</div></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const db=window.supabase.createClient("https://rnyymflpnidkgetmdwwx.supabase.co","sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx");
+const db=window.supabase.createClient("https://rnyymflpnidkgetmdwwx.supabase.co","sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx",{auth:{storageKey:"nago_driver_auth",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 let user=null,online=false,approved=false,driverRealtime=null;const app=document.getElementById("app");
 const labels={ready_for_pickup:"Chờ tài xế",driver_assigned:"Đã nhận đơn",picked_up:"Đã lấy hàng",delivering:"Đang giao",delivered:"Đã giao"};
 const money=n=>new Intl.NumberFormat("vi-VN").format(Number(n)||0)+"đ";
@@ -44,7 +44,7 @@ async function signin(){const {data,error}=await db.auth.signInWithPassword({ema
 async function profile(){
  let {data}=await db.from("driver_profiles").select("*").eq("id",user.id).maybeSingle();
  if(!data){const r=await db.from("driver_profiles").insert({id:user.id,full_name:user.user_metadata?.full_name||"",phone:user.user_metadata?.phone||""}).select().single();if(r.error)return alert(r.error.message);data=r.data}
- online=!!data.is_online; approved=!!data.is_approved; document.getElementById("sub").textContent=approved?(online?"🟢 Đang online":"⚪ Đang offline"):"⏳ Chờ Admin duyệt";
+ online=!!data.is_online; approved=!!data.is_approved; const sub=document.getElementById("sub"); if(sub)sub.textContent=approved?(online?"🟢 Đang online":"⚪ Đang offline"):"⏳ Chờ Admin duyệt";
 }
 async function toggleOnline(){if(!approved)return alert("Tài khoản Driver chưa được Admin duyệt.");const {error}=await db.from("driver_profiles").update({is_online:!online,updated_at:new Date().toISOString()}).eq("id",user.id);if(error)return alert(error.message);online=!online;await profile();await load()}
 function card(o,canClaim){
@@ -54,6 +54,17 @@ function card(o,canClaim){
  if(o.status==="picked_up")action='<button class="btn" onclick="move(\''+o.id+'\',\'delivering\')">Bắt đầu giao</button>';
  if(o.status==="delivering")action='<button class="btn" onclick="move(\''+o.id+'\',\'delivered\')">Đã giao</button>';
  return '<div class="card"><div class="row"><div><b>Đơn #'+o.id.slice(0,8)+'</b><div class="muted">'+esc(o.shop_name)+'</div></div><span class="pill">'+(labels[o.status]||o.status)+'</span></div><div class="items">'+(o.items||[]).map(i=>'<div class="item">'+esc(i.product_name)+' × '+i.quantity+' <b>'+money(i.line_total)+'</b></div>').join("")+'</div><p><b>Tổng: '+money(o.total)+'</b> · '+(o.payment_method==="cod"?"COD":"Điện tử")+'</p><div class="muted"><b>Giao tới:</b> '+esc(o.recipient_name||"")+' · '+esc(o.recipient_phone||"")+'<br>'+esc(o.address_line||"")+'</div>'+action+'</div>';
+}
+async function load(){
+ if(!user)return;
+ const {data,error}=await db.rpc("driver_get_orders");
+ if(error){app.innerHTML='<div class="card"><b>Không tải được đơn.</b><p class="muted">'+esc(error.message)+'</p><button class="btn gray" onclick="logout()">Đăng xuất</button></div>';return}
+ const all=data||[], mine=all.filter(o=>o.driver_id===user.id), waiting=all.filter(o=>o.status==="ready_for_pickup"&&!o.driver_id);
+ app.innerHTML='<div class="hero"><div><div class="muted">Xin chào</div><h1>Trung tâm tài xế</h1><div id="sub" class="'+(approved?"approved":"notapproved")+'">'+(approved?(online?"🟢 Đang online":"⚪ Đang offline"):"⏳ Chờ Admin duyệt")+'</div></div><button class="btn gray" onclick="logout()">Đăng xuất</button></div>'+
+ '<div class="stats"><div class="stat">🛵<div class="muted">Đơn chờ nhận</div><b>'+waiting.length+'</b></div><div class="stat">📦<div class="muted">Đơn của tôi</div><b>'+mine.length+'</b></div><div class="stat"><div class="muted">Trạng thái</div><b style="font-size:16px">'+(approved?(online?"ONLINE":"OFFLINE"):"CHỜ DUYỆT")+'</b></div></div>'+
+ '<div class="card"><div class="statusbar"><div><b>Trạng thái nhận đơn</b><div class="muted">Driver phải được Admin duyệt mới có thể Online.</div></div><button class="btn '+(online?"orange":"")+'" onclick="toggleOnline()">'+(online?"Tắt Online":"Bật Online")+'</button></div></div>'+
+ '<h2>Đơn hàng của tôi</h2>'+ (mine.length?mine.map(o=>card(o,false)).join(""):'<div class="card"><span class="muted">Chưa có đơn đang phụ trách.</span></div>')+
+ '<h2>Đơn đang chờ tài xế</h2>'+ (approved&&online?(waiting.length?waiting.map(o=>card(o,true)).join(""):'<div class="card"><span class="muted">Hiện không có đơn chờ nhận.</span></div>'):'<div class="card"><span class="muted">Bật Online sau khi tài khoản được duyệt để nhận đơn.</span></div>');
 }
 async function claim(id){const {error}=await db.rpc("driver_claim_order",{p_order_id:id});if(error)return alert(error.message);await load()}
 async function move(id,status){const notes={picked_up:"Tài xế đã lấy hàng",delivering:"Tài xế bắt đầu giao",delivered:"Tài xế xác nhận đã giao"};const {error}=await db.rpc("driver_transition_order",{p_order_id:id,p_next_status:status,p_note:notes[status]});if(error)return alert(error.message);await load()}
