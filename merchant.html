@@ -26,7 +26,7 @@ function merchantHardLogout(){
 }
 </script>
 <header><div class="top"><div class="brand"><div class="logo">N</div><div><b>NaGo Merchant</b><small>Trung tâm quản lý quán</small></div></div><button class="btn gray" onclick="merchantHardLogout()">Đăng xuất</button></div></header>
-<main id="app"><div class="card"><b>Đang tải dữ liệu...</b></div></main><div id="orderModal" class="modal" onclick="if(event.target===this)closeOrderDetail()"><div class="modal-card"><div class="modal-head"><div><b>Chi tiết đơn hàng</b><div id="detailSubtitle" class="muted"></div></div><button class="close" onclick="closeOrderDetail()">✕</button></div><div id="orderDetail" style="margin-top:14px"></div></div></div>
+<main id="app"><div class="card"><b>NaGo Merchant</b><p class="muted">Đang kết nối dữ liệu cửa hàng...</p><button class="btn gray" onclick="merchantHardLogout()">Đăng xuất</button><button class="btn" style="margin-left:8px" onclick="location.reload()">↻ Tải lại</button></div></main><div id="orderModal" class="modal" onclick="if(event.target===this)closeOrderDetail()"><div class="modal-card"><div class="modal-head"><div><b>Chi tiết đơn hàng</b><div id="detailSubtitle" class="muted"></div></div><button class="close" onclick="closeOrderDetail()">✕</button></div><div id="orderDetail" style="margin-top:14px"></div></div></div>
 <nav class="nago-bottom-nav" aria-label="Điều khiển chính"><button data-nav-key="home" class="active" onclick="merchantNav('home',this)"><b>⌂</b><span>Trang chủ</span></button><button data-nav-key="orders" onclick="merchantNav('orders',this)"><b>▣</b><span>Đơn hàng</span></button><button data-nav-key="revenue" onclick="merchantNav('revenue',this)"><b>💰</b><span>Doanh thu</span></button><button data-nav-key="personal" onclick="merchantNav('personal',this)"><b>♙</b><span>Cá nhân</span></button></nav><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL="https://rnyymflpnidkgetmdwwx.supabase.co";
@@ -67,6 +67,7 @@ function enableMerchantNotifications(){
 function showLoadError(message){
  app.innerHTML='<div class="card"><b>NaGo Merchant đang gặp lỗi tải dữ liệu.</b><p class="muted">'+esc(message)+'</p><div class="actions"><button class="btn" onclick="start()">↻ Thử lại</button><button class="btn gray" onclick="logout()">Đăng xuất</button></div></div>';
 }
+let merchantBootTimer=setTimeout(()=>{try{if(document.getElementById("app")?.textContent.includes("Đang kết nối dữ liệu")){showLoadError("Kết nối Merchant quá thời gian chờ. Hãy tải lại hoặc đăng xuất để tạo phiên mới.");}}catch(_){ }},15000);
 async function start(){
  try{
    if(!db){
@@ -102,6 +103,7 @@ async function start(){
  }
 }
 async function checkRoleAndLoad(){
+ clearTimeout(merchantBootTimer);
  if(!user){login();return}
  app.innerHTML='<div class="card"><b>Đang kiểm tra tài khoản Merchant...</b></div>';
  try{
