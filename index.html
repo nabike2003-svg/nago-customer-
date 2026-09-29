@@ -90,7 +90,7 @@ h2{margin:4px 0 14px;font-size:21px}.sub{color:var(--muted);font-size:13px;margi
 <section id="account" class="screen">
   <h2>👤 Tài khoản</h2><div class="sub">Quản lý thông tin và cài đặt</div>
   <div class="account-card"><b>Khách hàng NaGo</b><div class="meta">Đăng nhập để lưu địa chỉ và đơn hàng</div><button class="primary" onclick="showAuth()">Đăng nhập / Đăng ký</button></div>
-  <div class="account-card">📍 Địa chỉ giao hàng</div><div class="account-card">💳 Phương thức thanh toán</div><div class="account-card">🎁 Mã giảm giá</div><div class="account-card">⚙️ Cài đặt</div>
+  <div class="account-card" id="addressCard"><div style="display:flex;justify-content:space-between;align-items:center"><b>📍 Địa chỉ giao hàng</b><button onclick="openAddressManager()" style="background:var(--green);color:#fff;padding:7px 10px;border-radius:9px;font-size:12px">Quản lý</button></div><div id="defaultAddressText" class="meta">Chưa có địa chỉ giao hàng</div></div><div class="account-card">💳 Phương thức thanh toán</div><div class="account-card">🎁 Mã giảm giá</div><div class="account-card">⚙️ Cài đặt</div>
 </section>
 </main>
 
@@ -103,7 +103,7 @@ h2{margin:4px 0 14px;font-size:21px}.sub{color:var(--muted);font-size:13px;margi
 <button class="navbtn" data-screen="account" onclick="show('account')"><span>👤</span>Tài khoản</button>
 </nav>
 <div class="toast" id="toast"></div>
-<div class="modal" id="authModal"><div class="sheet"><button class="close" onclick="closeAuth()">×</button><h2>👤 NaGo Account</h2><div class="fields"><div class="field"><label>HỌ TÊN</label><input id="authName" placeholder="Tên của bạn"></div><div class="field"><label>EMAIL</label><input id="authEmail" type="email" placeholder="email@example.com"></div><div class="field"><label>MẬT KHẨU</label><input id="authPassword" type="password" placeholder="Tối thiểu 6 ký tự"></div></div><button class="primary" onclick="signIn()">Đăng nhập</button><button class="primary" style="background:#102A43" onclick="signUp()">Tạo tài khoản</button></div></div><div class="modal" id="cartModal"><div class="sheet"><button class="close" onclick="closeCart()">×</button><h2>🛒 Giỏ hàng</h2><div id="cartItems"></div><div class="row"><b>Tạm tính</b><b id="subtotal">0đ</b></div><div class="row"><span>Phí giao hàng</span><span>15.000đ</span></div><div class="row"><b>Tổng</b><b id="grand">15.000đ</b></div><button class="primary" onclick="checkout()">Đặt hàng</button></div></div>
+<div class="modal" id="addressModal"><div class="sheet"><button class="close" onclick="closeAddressManager()">×</button><h2>📍 Địa chỉ giao hàng</h2><div id="addressList"></div><div class="account-card" style="margin-top:12px"><b>Thêm địa chỉ mới</b><div class="fields" style="margin-top:10px"><div class="field"><label>TÊN NGƯỜI NHẬN</label><input id="addrName" placeholder="Nguyễn Văn A"></div><div class="field"><label>SỐ ĐIỆN THOẠI</label><input id="addrPhone" placeholder="09xxxxxxxx"></div><div class="field"><label>TÊN GỌI</label><input id="addrLabel" value="Nhà" placeholder="Nhà, Công ty..."></div><div class="field"><label>ĐỊA CHỈ CHI TIẾT</label><input id="addrLine" placeholder="Số nhà, đường, phường/xã..."></div></div><button class="primary" onclick="saveAddress()">Lưu địa chỉ</button></div></div></div><div class="modal" id="addressSelectModal"><div class="sheet"><button class="close" onclick="closeAddressSelect()">×</button><h2>📍 Chọn địa chỉ giao hàng</h2><div id="checkoutAddressList"></div><button class="primary" onclick="openAddressManagerFromCheckout()">+ Thêm địa chỉ mới</button></div></div><div class="modal" id="authModal"><div class="sheet"><button class="close" onclick="closeAuth()">×</button><h2>👤 NaGo Account</h2><div class="fields"><div class="field"><label>HỌ TÊN</label><input id="authName" placeholder="Tên của bạn"></div><div class="field"><label>EMAIL</label><input id="authEmail" type="email" placeholder="email@example.com"></div><div class="field"><label>MẬT KHẨU</label><input id="authPassword" type="password" placeholder="Tối thiểu 6 ký tự"></div></div><button class="primary" onclick="signIn()">Đăng nhập</button><button class="primary" style="background:#102A43" onclick="signUp()">Tạo tài khoản</button></div></div><div class="modal" id="cartModal"><div class="sheet"><button class="close" onclick="closeCart()">×</button><h2>🛒 Giỏ hàng</h2><div id="cartItems"></div><div class="row"><b>Tạm tính</b><b id="subtotal">0đ</b></div><div class="row"><span>Phí giao hàng</span><span>15.000đ</span></div><div class="row"><b>Địa chỉ</b><button onclick="openAddressSelect()" style="background:#eef8f6;color:var(--green);padding:7px 10px;border-radius:9px;font-weight:700" id="selectedAddressBtn">Chọn địa chỉ</button></div><div id="selectedAddressText" class="meta">Vui lòng chọn địa chỉ giao hàng</div><div class="row"><b>Tổng</b><b id="grand">15.000đ</b></div><button class="primary" onclick="checkout()">Đặt hàng</button></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -112,7 +112,7 @@ const SUPABASE_PUBLISHABLE_KEY="sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx";
 const nagoSupabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 let restaurants=[];
 let cart=JSON.parse(localStorage.getItem("nago_cart")||"[]");
-let currentUser=null;
+let currentUser=null;\nlet userAddresses=[];\nlet selectedAddressId=null;
 async function loadRestaurants(){
   const list=document.getElementById('restaurantList');
   const homeList=document.getElementById('homeRestaurants');
@@ -157,7 +157,69 @@ function money(value){return new Intl.NumberFormat('vi-VN').format(Number(value)
 function updateCart(){let count=cart.reduce((a,x)=>a+x.qty,0),sum=cart.reduce((a,x)=>a+x.price*x.qty,0);document.getElementById('cartSummary').textContent=`${count} món • ${money(sum)}`;document.getElementById('cartbar').classList.toggle('show',count>0)}
 function openCart(){let el=document.getElementById('cartItems');el.innerHTML=cart.length?cart.map(x=>`<div class="row"><span>${x.name} × ${x.qty}</span><b>${money(x.price*x.qty)}</b></div>`).join(''):'<p class="meta">Giỏ hàng đang trống.</p>';let s=cart.reduce((a,x)=>a+x.price*x.qty,0),fee=cart.length?(restaurants.find(r=>r.id===cart[0].shop_id)?.delivery_fee||15000):0;document.getElementById('subtotal').textContent=money(s);document.getElementById('grand').textContent=money(s+fee);document.getElementById('cartModal').classList.add('show')}
 function closeCart(){document.getElementById('cartModal').classList.remove('show')}
-async function checkout(){if(!cart.length)return toast('Giỏ hàng đang trống');if(!currentUser){closeCart();showAuth();return}const shop=restaurants.find(r=>r.id===cart[0].shop_id);if(!shop)return toast('Không tìm thấy quán');const subtotal=cart.reduce((a,x)=>a+x.price*x.qty,0),fee=shop.delivery_fee||15000;const {data:order,error}=await nagoSupabase.from('orders').insert({user_id:currentUser.id,shop_id:shop.id,subtotal,delivery_fee:fee,total:subtotal+fee}).select().single();if(error){console.error(error);return toast('Không thể tạo đơn: '+error.message)}const items=cart.map(x=>({order_id:order.id,product_id:x.id,product_name:x.name,unit_price:x.price,quantity:x.qty}));const {error:itemError}=await nagoSupabase.from('order_items').insert(items);if(itemError){console.error(itemError);await nagoSupabase.from('orders').delete().eq('id',order.id).eq('user_id',currentUser.id);return toast('Không thể lưu món. Đơn chưa được xác nhận.')}const {error:historyError}=await nagoSupabase.from('order_status_history').insert({order_id:order.id,status:'pending',note:'Khách hàng tạo đơn'});if(historyError){console.error(historyError)}cart=[];save();closeCart();await renderOrders();show('orders');toast('Đặt đơn thành công!')}
+async function loadAddresses(){
+  if(!currentUser){userAddresses=[];selectedAddressId=null;return}
+  const {data,error}=await nagoSupabase.from('user_addresses').select('id,label,recipient_name,phone,address_line,is_default,created_at').eq('user_id',currentUser.id).order('is_default',{ascending:false}).order('created_at',{ascending:false});
+  if(error){console.error(error);return toast('Không tải được địa chỉ: '+error.message)}
+  userAddresses=data||[];
+  const def=userAddresses.find(x=>x.is_default)||userAddresses[0];
+  if(def&&!selectedAddressId)selectedAddressId=def.id;
+  renderAddresses();
+}
+function addressText(a){return a ? (a.label+' • '+a.address_line) : 'Chưa có địa chỉ'}
+function renderAddresses(){
+  const list=document.getElementById('addressList'), checkoutList=document.getElementById('checkoutAddressList');
+  if(!list||!checkoutList)return;
+  if(!userAddresses.length){
+    list.innerHTML='<div class="meta">Bạn chưa lưu địa chỉ nào.</div>';
+    checkoutList.innerHTML='<div class="order-card"><b>Chưa có địa chỉ</b><div class="meta">Hãy thêm địa chỉ giao hàng trước khi đặt đơn.</div></div>';
+  }else{
+    list.innerHTML=userAddresses.map(a=>'<div class="order-card"><div><b>'+a.label+'</b>'+(a.is_default?' <span class="status">Mặc định</span>':'')+'</div><div class="meta">'+(a.recipient_name||'')+(a.phone?' • '+a.phone:'')+'</div><div style="margin-top:6px">'+a.address_line+'</div><div style="display:flex;gap:7px;margin-top:10px">'+(!a.is_default?'<button onclick="setDefaultAddress(\''+a.id+'\')" style="background:#eef8f6;color:var(--green);padding:7px 9px;border-radius:9px;font-size:12px">Đặt mặc định</button>':'')+'<button onclick="deleteAddress(\''+a.id+'\')" style="background:#fff0f0;color:var(--danger);padding:7px 9px;border-radius:9px;font-size:12px">Xóa</button></div></div>').join('');
+    checkoutList.innerHTML=userAddresses.map(a=>'<button onclick="selectCheckoutAddress(\''+a.id+'\')" style="display:block;width:100%;text-align:left;background:'+(a.id===selectedAddressId?'#eef8f6':'#fff')+';border:1px solid '+(a.id===selectedAddressId?'var(--green)':'var(--line)')+';border-radius:14px;padding:12px;margin-bottom:9px"><b>'+a.label+(a.is_default?' • Mặc định':'')+'</b><div class="meta">'+(a.recipient_name||'')+(a.phone?' • '+a.phone:'')+'</div><div style="margin-top:5px">'+a.address_line+'</div></button>').join('');
+  }
+  const selected=userAddresses.find(a=>a.id===selectedAddressId)||userAddresses.find(a=>a.is_default)||userAddresses[0];
+  selectedAddressId=selected?.id||null;
+  document.getElementById('defaultAddressText').textContent=selected?addressText(selected):'Chưa có địa chỉ giao hàng';
+  const selectedText=document.getElementById('selectedAddressText');
+  if(selectedText)selectedText.textContent=selected?'Giao đến: '+selected.address_line:'Vui lòng chọn địa chỉ giao hàng';
+}
+function openAddressManager(){if(!currentUser){showAuth();return}loadAddresses().then(()=>document.getElementById('addressModal').classList.add('show'))}
+function closeAddressManager(){document.getElementById('addressModal').classList.remove('show')}
+function openAddressSelect(){if(!currentUser){closeCart();showAuth();return}loadAddresses().then(()=>{if(!userAddresses.length){closeAddressSelect();openAddressManager()}else document.getElementById('addressSelectModal').classList.add('show')})}
+function closeAddressSelect(){document.getElementById('addressSelectModal').classList.remove('show')}
+function openAddressManagerFromCheckout(){closeAddressSelect();openAddressManager()}
+async function selectCheckoutAddress(id){selectedAddressId=id;renderAddresses();closeAddressSelect()}
+async function saveAddress(){
+  if(!currentUser)return showAuth();
+  const recipient_name=document.getElementById('addrName').value.trim(),phone=document.getElementById('addrPhone').value.trim(),label=document.getElementById('addrLabel').value.trim()||'Nhà',address_line=document.getElementById('addrLine').value.trim();
+  if(!address_line)return toast('Nhập địa chỉ giao hàng');
+  const is_default=userAddresses.length===0;
+  const {error}=await nagoSupabase.from('user_addresses').insert({user_id:currentUser.id,label,recipient_name:recipient_name||null,phone:phone||null,address_line,is_default});
+  if(error)return toast('Không thể lưu địa chỉ: '+error.message);
+  document.getElementById('addrName').value='';document.getElementById('addrPhone').value='';document.getElementById('addrLabel').value='Nhà';document.getElementById('addrLine').value='';
+  await loadAddresses();toast('Đã lưu địa chỉ');
+}
+async function setDefaultAddress(id){
+  if(!currentUser)return;
+  const {error:clearError}=await nagoSupabase.from('user_addresses').update({is_default:false}).eq('user_id',currentUser.id);
+  if(clearError)return toast('Không thể cập nhật địa chỉ');
+  const {error}=await nagoSupabase.from('user_addresses').update({is_default:true}).eq('id',id).eq('user_id',currentUser.id);
+  if(error)return toast('Không thể đặt mặc định: '+error.message);
+  selectedAddressId=id;await loadAddresses();toast('Đã đặt địa chỉ mặc định');
+}
+async function deleteAddress(id){
+  if(!confirm('Xóa địa chỉ này?'))return;
+  const target=userAddresses.find(a=>a.id===id);
+  const {error}=await nagoSupabase.from('user_addresses').delete().eq('id',id).eq('user_id',currentUser.id);
+  if(error)return toast('Không thể xóa địa chỉ: '+error.message);
+  if(selectedAddressId===id)selectedAddressId=null;
+  if(target?.is_default){
+    const remaining=userAddresses.filter(a=>a.id!==id);
+    if(remaining[0])await nagoSupabase.from('user_addresses').update({is_default:true}).eq('id',remaining[0].id).eq('user_id',currentUser.id);
+  }
+  await loadAddresses();toast('Đã xóa địa chỉ');
+}
+async function checkout(){if(!cart.length)return toast('Giỏ hàng đang trống');if(!currentUser){closeCart();showAuth();return}const shop=restaurants.find(r=>r.id===cart[0].shop_id);if(!shop)return toast('Không tìm thấy quán');const subtotal=cart.reduce((a,x)=>a+x.price*x.qty,0),fee=shop.delivery_fee||15000;await loadAddresses();\n  const selected=userAddresses.find(a=>a.id===selectedAddressId)||userAddresses.find(a=>a.is_default)||userAddresses[0];\n  if(!selected){closeCart();openAddressManager();return toast('Vui lòng thêm địa chỉ giao hàng trước khi đặt đơn')}\n  selectedAddressId=selected.id;\n  const {data:order,error}=await nagoSupabase.from('orders').insert({user_id:currentUser.id,shop_id:shop.id,address_id:selected.id,subtotal,delivery_fee:fee,total:subtotal+fee}).select().single();if(error){console.error(error);return toast('Không thể tạo đơn: '+error.message)}const items=cart.map(x=>({order_id:order.id,product_id:x.id,product_name:x.name,unit_price:x.price,quantity:x.qty}));const {error:itemError}=await nagoSupabase.from('order_items').insert(items);if(itemError){console.error(itemError);await nagoSupabase.from('orders').delete().eq('id',order.id).eq('user_id',currentUser.id);return toast('Không thể lưu món. Đơn chưa được xác nhận.')}const {error:historyError}=await nagoSupabase.from('order_status_history').insert({order_id:order.id,status:'pending',note:'Khách hàng tạo đơn'});if(historyError){console.error(historyError)}cart=[];save();closeCart();await renderOrders();show('orders');toast('Đặt đơn thành công!')}
 function orderStatusLabel(status){
   return {pending:'Đã đặt',shop_accepted:'Quán đã nhận',preparing:'Đang chuẩn bị',ready_for_pickup:'Chờ tài xế',driver_assigned:'Đã có tài xế',picked_up:'Đã lấy hàng',delivering:'Đang giao',delivered:'Đã giao',cancelled:'Đã hủy',rejected:'Bị từ chối',refunded:'Đã hoàn tiền',failed:'Thất bại'}[status]||status;
 }
@@ -173,13 +235,13 @@ async function renderOrders(){
     document.getElementById('ordersList').innerHTML='<div class="order-card"><b>Đăng nhập để xem đơn hàng</b><div class="meta">Đơn hàng sẽ được lưu trên tài khoản NaGo của bạn.</div><button class="primary" onclick="showAuth()">Đăng nhập / Đăng ký</button></div>';
     return;
   }
-  const {data:orders,error:ordersError}=await nagoSupabase.from('orders').select('id,status,total,created_at,shop:shops(name),items:order_items(product_name,quantity)').eq('user_id',currentUser.id).order('created_at',{ascending:false});
+  const {data:orders,error:ordersError}=await nagoSupabase.from('orders').select('id,status,total,created_at,address:user_addresses(label,address_line),shop:shops(name),items:order_items(product_name,quantity)').eq('user_id',currentUser.id).order('created_at',{ascending:false});
   if(ordersError){
     console.error(ordersError);
     document.getElementById('ordersList').innerHTML='<div class="order-card"><b>Không tải được đơn hàng</b><div class="meta">'+ordersError.message+'</div><button class="primary" onclick="renderOrders()">Thử lại</button></div>';
     return;
   }
-  document.getElementById('ordersList').innerHTML=orders?.length?orders.map(o=>`<div class="order-card"><div><b>Đơn #${o.id.slice(0,8).toUpperCase()}</b><span class="status" style="float:right">${orderStatusLabel(o.status)}</span></div><div class="meta">${o.shop?.name||'NaGo Food'} • ${(o.items||[]).map(i=>i.product_name+' × '+i.quantity).join(', ')}</div>${renderOrderProgress(o.status)}<div class="order-total"><span>Tổng thanh toán</span><span>${money(o.total)}</span></div></div>`).join(''):'<div class="order-card"><b>Chưa có đơn hàng</b><div class="meta">Đơn bạn đặt sẽ xuất hiện tại đây.</div></div>';
+  document.getElementById('ordersList').innerHTML=orders?.length?orders.map(o=>`<div class="order-card"><div><b>Đơn #${o.id.slice(0,8).toUpperCase()}</b><span class="status" style="float:right">${orderStatusLabel(o.status)}</span></div><div class="meta">${o.shop?.name||'NaGo Food'} • ${(o.items||[]).map(i=>i.product_name+' × '+i.quantity).join(', ')}${o.address?.address_line?' • 📍 '+o.address.address_line:''}</div>${renderOrderProgress(o.status)}<div class="order-total"><span>Tổng thanh toán</span><span>${money(o.total)}</span></div></div>`).join(''):'<div class="order-card"><b>Chưa có đơn hàng</b><div class="meta">Đơn bạn đặt sẽ xuất hiện tại đây.</div></div>';
 }
 function searchFood(){let q=document.getElementById('search').value.toLowerCase();if(!q){render();return}let rs=restaurants.filter(r=>r.name.toLowerCase().includes(q)||r.items.some(i=>i.name.toLowerCase().includes(q)));document.getElementById('restaurantList').innerHTML=rs.length?rs.map(restaurantCard).join(''):'<div class="order-card">Không tìm thấy món hoặc quán phù hợp.</div>';show('food')}
 function toast(t){let x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
@@ -229,6 +291,7 @@ function updateAccount(){
   const box=document.querySelector('#account .account-card');
   if(!box)return;
   if(currentUser){
+    loadAddresses();
     const name=currentUser.user_metadata?.full_name?.trim()||'Khách hàng NaGo';
     box.innerHTML=`<b>${name}</b><div class="meta">${currentUser.email}</div><button class="primary" onclick="signOut()">Đăng xuất</button>`;
   }else{
@@ -236,7 +299,7 @@ function updateAccount(){
   }
 }
 function render(){document.getElementById('restaurantList').innerHTML=restaurants.map(restaurantCard).join('');document.getElementById('homeRestaurants').innerHTML=restaurants.slice(0,2).map(restaurantCard).join('');updateCart();updateAccount()}
-(async()=>{const {data}=await nagoSupabase.auth.getSession();currentUser=data.session?.user||null;await loadRestaurants();renderOrders();nagoSupabase.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;updateAccount();renderOrders()})})();
+(async()=>{const {data}=await nagoSupabase.auth.getSession();currentUser=data.session?.user||null;if(currentUser)await loadAddresses();await loadRestaurants();renderOrders();nagoSupabase.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;updateAccount();renderOrders()})})();
 
 </script>
 </body>
