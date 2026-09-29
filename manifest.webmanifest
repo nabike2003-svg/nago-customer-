@@ -1,0 +1,9 @@
+{
+  "name": "NaGo — Khách hàng",
+  "short_name": "NaGo",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F7F9F8",
+  "theme_color": "#102A43",
+  "icons": []
+}
