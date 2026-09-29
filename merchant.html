@@ -22,7 +22,7 @@ input{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;ma
 <script>
 const URL="https://rnyymflpnidkgetmdwwx.supabase.co";
 const KEY="sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx";
-const db=window.supabase.createClient(URL,KEY);
+const db=window.supabase.createClient(URL,KEY,{auth:{storageKey:"nago_merchant_auth",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const app=document.getElementById("app");
 let user=null,shops=[],merchantRealtime=null;
 const labels={pending:"Đã đặt",shop_accepted:"Quán đã nhận",preparing:"Đang chuẩn bị",ready_for_pickup:"Chờ tài xế",driver_assigned:"Đã có tài xế",picked_up:"Đã lấy hàng",delivering:"Đang giao",delivered:"Đã giao",rejected:"Đã từ chối",cancelled:"Đã hủy"};
