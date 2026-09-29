@@ -71,12 +71,12 @@ async function toggleOnline(){
 }
 function card(o,canClaim){
  let action="";
- if(canClaim)action='<button class="btn" onclick="claim(\\''+o.id+'\\')">Nhận đơn</button>';
- if(o.status==="driver_assigned")action='<button class="btn" onclick="move(\\''+o.id+'\\',\\'picked_up\\')">Đã lấy hàng</button>';
- if(o.status==="picked_up")action='<button class="btn" onclick="move(\\''+o.id+'\\',\\'delivering\\')">Bắt đầu giao</button>';
- if(o.status==="delivering")action='<button class="btn" onclick="move(\\''+o.id+'\\',\\'delivered\\')">Đã giao</button>';
- if(o.status==="delivered"&&o.payment_method==="cod"&&o.payment_status!=="paid")action+='<button class="btn orange" onclick="collectCod(\\''+o.id+'\\')">💵 Xác nhận đã thu COD</button>';
- return '<div class="card"><div class="row"><div><b>Đơn #'+o.id.slice(0,8)+'</b><div class="muted">'+esc(o.shop_name)+'</div></div><span class="pill">'+(labels[o.status]||o.status)+'</span></div><div class="row"><b>Tổng: '+money(o.total)+'</b><span class="muted">'+(o.payment_method==="cod"?"COD":"Điện tử")+(o.payment_method==="cod"?" · "+(o.payment_status==="paid"?"Đã thu COD":"Chưa thu COD"):"")+'</span></div><div class="actions"><button class="detail-btn" onclick="openOrderDetail(\\''+o.id+'\\')">👁 Xem chi tiết</button>'+action+'</div></div>';
+ if(canClaim)action='<button class="btn" onclick="claim(\''+o.id+'\')">Nhận đơn</button>';
+ if(o.status==="driver_assigned")action='<button class="btn" onclick="move(\''+o.id+'\',\'picked_up\')">Đã lấy hàng</button>';
+ if(o.status==="picked_up")action='<button class="btn" onclick="move(\''+o.id+'\',\'delivering\')">Bắt đầu giao</button>';
+ if(o.status==="delivering")action='<button class="btn" onclick="move(\''+o.id+'\',\'delivered\')">Đã giao</button>';
+ if(o.status==="delivered"&&o.payment_method==="cod"&&o.payment_status!=="paid")action+='<button class="btn orange" onclick="collectCod(\''+o.id+'\')">💵 Xác nhận đã thu COD</button>';
+ return '<div class="card"><div class="row"><div><b>Đơn #'+o.id.slice(0,8)+'</b><div class="muted">'+esc(o.shop_name)+'</div></div><span class="pill">'+(labels[o.status]||o.status)+'</span></div><div class="row"><b>Tổng: '+money(o.total)+'</b><span class="muted">'+(o.payment_method==="cod"?"COD":"Điện tử")+(o.payment_method==="cod"?" · "+(o.payment_status==="paid"?"Đã thu COD":"Chưa thu COD"):"")+'</span></div><div class="actions"><button class="detail-btn" onclick="openOrderDetail(\''+o.id+'\')">👁 Xem chi tiết</button>'+action+'</div></div>';
 }
 function openOrderDetail(id){
  const o=(window.driverOrders||[]).find(x=>x.id===id); if(!o)return;
@@ -86,11 +86,11 @@ function openOrderDetail(id){
 }
 function driverDetailActions(o){
  let a='';
- if(!o.driver_id&&o.status==="ready_for_pickup"&&approved&&online)a='<button class="btn" onclick="closeOrderDetail();claim(\\''+o.id+'\\')">Nhận đơn</button>';
- if(o.driver_id===user.id&&o.status==="driver_assigned")a='<button class="btn" onclick="closeOrderDetail();move(\\''+o.id+'\\',\\'picked_up\\')">Đã lấy hàng</button>';
- if(o.driver_id===user.id&&o.status==="picked_up")a='<button class="btn" onclick="closeOrderDetail();move(\\''+o.id+'\\',\\'delivering\\')">Bắt đầu giao</button>';
- if(o.driver_id===user.id&&o.status==="delivering")a='<button class="btn" onclick="closeOrderDetail();move(\\''+o.id+'\\',\\'delivered\\')">Đã giao</button>';
- if(o.driver_id===user.id&&o.status==="delivered"&&o.payment_method==="cod"&&o.payment_status!=="paid")a='<button class="btn orange" onclick="closeOrderDetail();collectCod(\\''+o.id+'\\')">💵 Xác nhận đã thu COD</button>';
+ if(!o.driver_id&&o.status==="ready_for_pickup"&&approved&&online)a='<button class="btn" onclick="closeOrderDetail();claim(\''+o.id+'\')">Nhận đơn</button>';
+ if(o.driver_id===user.id&&o.status==="driver_assigned")a='<button class="btn" onclick="closeOrderDetail();move(\''+o.id+'\',\'picked_up\')">Đã lấy hàng</button>';
+ if(o.driver_id===user.id&&o.status==="picked_up")a='<button class="btn" onclick="closeOrderDetail();move(\''+o.id+'\',\'delivering\')">Bắt đầu giao</button>';
+ if(o.driver_id===user.id&&o.status==="delivering")a='<button class="btn" onclick="closeOrderDetail();move(\''+o.id+'\',\'delivered\')">Đã giao</button>';
+ if(o.driver_id===user.id&&o.status==="delivered"&&o.payment_method==="cod"&&o.payment_status!=="paid")a='<button class="btn orange" onclick="closeOrderDetail();collectCod(\''+o.id+'\')">💵 Xác nhận đã thu COD</button>';
  return a;
 }
 function closeOrderDetail(){document.getElementById("orderModal")?.classList.remove("show")}
