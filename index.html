@@ -29,7 +29,29 @@ h2{margin:4px 0 14px;font-size:21px}.sub{color:var(--muted);font-size:13px;margi
 .toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--navy);color:#fff;padding:11px 16px;border-radius:12px;font-size:13px;z-index:30;transition:.25s}.toast.show{transform:translateX(-50%) translateY(0)}
 .modal{display:none;position:fixed;inset:0;background:#0006;z-index:20;align-items:flex-end;justify-content:center}.modal.show{display:flex}.sheet{background:#fff;width:100%;max-width:520px;border-radius:24px 24px 0 0;padding:20px;max-height:85vh;overflow:auto}.sheet h2{margin-top:0}.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}.close{float:right;background:#eef2f1;border-radius:50%;width:32px;height:32px}
 @media(min-width:521px){body{padding:20px}.app{border-radius:25px;overflow:hidden;box-shadow:0 10px 40px #0002}}
-/* NaGo UX polish */button{min-height:42px}button:active{transform:translateY(1px)}.meta,.sub,.muted{line-height:1.45}.sheet{max-height:92vh;padding-bottom:calc(18px + env(safe-area-inset-bottom))}.bottom{padding-bottom:calc(8px + env(safe-area-inset-bottom))}@media(max-width:480px){main{padding-left:12px;padding-right:12px}.hero{padding:18px 16px!important}.hero h2{font-size:22px}.food-item{gap:10px}.food-info p{font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.add{width:42px;height:42px;flex:0 0 42px}}.location-permission{background:#eef8f6;border:1px solid #b9e8df;border-radius:14px;padding:12px;margin:10px 0}.location-permission .primary{width:100%}</style>
+/* NaGo UX polish */button{min-height:42px}button:active{transform:translateY(1px)}.meta,.sub,.muted{line-height:1.45}.sheet{max-height:92vh;padding-bottom:calc(18px + env(safe-area-inset-bottom))}.bottom{padding-bottom:calc(8px + env(safe-area-inset-bottom))}@media(max-width:480px){main{padding-left:12px;padding-right:12px}.hero{padding:18px 16px!important}.hero h2{font-size:22px}.food-item{gap:10px}.food-info p{font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.add{width:42px;height:42px;flex:0 0 42px}}.location-permission{background:#eef8f6;border:1px solid #b9e8df;border-radius:14px;padding:12px;margin:10px 0}.location-permission .primary{width:100%}
+/* NaGo Customer v2 visual refresh */
+body{background:linear-gradient(180deg,#eaf2f0 0%,#f4f7f6 38%,#eef3f1 100%);font-family:"Be Vietnam Pro",Arial,sans-serif}
+.app{background:#f7faf9}
+header{position:relative;padding:17px 15px 18px;border-radius:0 0 28px 28px;background:linear-gradient(145deg,#102A43 0%,#163d58 58%,#007f76 100%);box-shadow:0 10px 30px rgba(16,42,67,.16)}
+header:after{content:"";position:absolute;right:-45px;top:-60px;width:170px;height:170px;border-radius:50%;background:rgba(0,191,166,.18);pointer-events:none}
+.brand{font-size:24px;letter-spacing:-.5px}.logo{width:38px;height:38px;border-radius:12px;box-shadow:0 5px 15px rgba(0,191,166,.3)}
+.top>div:last-child{width:38px;height:38px;border:1px solid rgba(255,255,255,.16);border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.08);font-size:17px}
+.location{margin-top:17px;font-size:10px;letter-spacing:.9px;font-weight:700}.address{font-size:14px;margin-top:4px}
+.search{position:relative;z-index:1;margin-top:15px;border-radius:15px;padding:12px 14px;box-shadow:0 8px 22px rgba(0,0,0,.12);color:#6d7d85}.search input{font-size:14px}
+main{padding:15px 13px 20px}.hero{position:relative;overflow:hidden;margin-bottom:16px;padding:21px 18px;border-radius:22px;background:linear-gradient(135deg,#00bfa6 0%,#00a78f 58%,#007f76 100%);box-shadow:0 12px 26px rgba(0,155,137,.2)}
+.hero:after{content:"";position:absolute;right:-28px;bottom:-52px;width:155px;height:155px;border-radius:50%;border:22px solid rgba(255,255,255,.1)}
+.hero h2,.hero p,.hero button{position:relative;z-index:1}.hero h2{font-size:22px;line-height:1.25;max-width:285px}.hero p{font-size:12px;max-width:300px}.hero button{padding:11px 15px;border-radius:12px;box-shadow:0 5px 12px rgba(0,0,0,.08)}
+.services{grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:19px}.service{border:1px solid #e4ece9;border-radius:17px;padding:12px 4px;box-shadow:0 5px 15px rgba(16,42,67,.04);transition:.15s}.service:active{transform:scale(.97)}.service .ico{width:40px;height:40px;margin:auto;display:grid;place-items:center;border-radius:13px;background:#eef8f6;font-size:21px}.service b{font-size:11px;margin-top:7px}
+.section-head{margin:18px 2px 10px}.section-head h3{font-size:17px}.section-head span{padding:6px 0}
+.restaurant{border-radius:18px;box-shadow:0 6px 18px rgba(16,42,67,.05);transition:.15s}.restaurant:active{transform:scale(.985)}.food-img{height:118px;background:linear-gradient(135deg,#ffe0c7,#fff6ee)}.restaurant-body{padding:13px}.restaurant-title b{font-size:15px}.tag{font-size:10px}
+.account-card,.order-card,.ride-card,.delivery-card{border-radius:17px;box-shadow:0 5px 16px rgba(16,42,67,.04)}
+/* Auth */
+.auth-shell{padding-top:6px}.auth-brand{text-align:center;margin:4px 0 18px}.auth-brand .auth-logo{width:54px;height:54px;margin:0 auto 10px;border-radius:17px;background:linear-gradient(145deg,#00BFA6,#008f81);color:#fff;display:grid;place-items:center;font-weight:900;font-size:27px;box-shadow:0 8px 20px rgba(0,191,166,.22)}.auth-brand h2{margin:0;font-size:23px}.auth-brand p{margin:6px 0 0;color:var(--muted);font-size:12px}.auth-tabs{display:grid;grid-template-columns:1fr 1fr;background:#edf3f1;padding:4px;border-radius:13px;margin-bottom:16px}.auth-tab{min-height:40px;background:transparent;color:var(--muted);border-radius:10px;font-weight:800;font-size:13px}.auth-tab.active{background:#fff;color:var(--navy);box-shadow:0 3px 10px rgba(16,42,67,.07)}.auth-pane{display:none}.auth-pane.active{display:block}.phone-input{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:0 12px}.phone-prefix{font-weight:800;color:var(--navy);font-size:14px}.phone-input input{border:0;outline:0;background:transparent;width:100%;padding:13px 0;font-size:15px}.otp-box{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-top:10px}.otp-box input{width:100%;height:48px;border:1px solid var(--line);border-radius:11px;text-align:center;font-size:20px;font-weight:800;outline:0}.auth-note{background:#f3f8f7;border:1px solid #d9ebe7;border-radius:12px;padding:10px 11px;color:#557078;font-size:11px;line-height:1.45;margin-top:11px}.auth-secondary{width:100%;background:#fff;border:1px solid #dce7e4;color:var(--navy);padding:11px;border-radius:12px;font-weight:700;margin-top:9px}.auth-link{display:block;text-align:center;color:var(--green);font-size:12px;font-weight:800;margin-top:12px;background:transparent}.auth-divider{display:flex;align-items:center;gap:9px;color:#98a8ad;font-size:10px;margin:15px 0}.auth-divider:before,.auth-divider:after{content:"";height:1px;background:#e5ecea;flex:1}.auth-email{display:none}.auth-email.show{display:block}.auth-status{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.4}
+/* Home sections */
+.home-greeting{margin:3px 2px 13px}.home-greeting small{color:var(--muted);font-size:12px}.home-greeting h2{margin:3px 0 0;font-size:20px}.quick-card{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e5ecea;border-radius:17px;padding:12px;margin-bottom:14px;box-shadow:0 5px 16px rgba(16,42,67,.04)}.quick-icon{width:42px;height:42px;border-radius:13px;background:#eef8f6;display:grid;place-items:center;font-size:21px;flex:none}.quick-card b{font-size:13px}.quick-card .meta{font-size:11px;margin-top:2px}.quick-card button{margin-left:auto;background:#edf8f5;color:#008d7c;border-radius:10px;padding:8px 10px;font-size:11px;font-weight:800;min-height:36px}
+@media(max-width:380px){.services{gap:5px}.service{padding-left:2px;padding-right:2px}.service b{font-size:10px}.otp-box{gap:5px}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -41,14 +63,18 @@ h2{margin:4px 0 14px;font-size:21px}.sub{color:var(--muted);font-size:13px;margi
 
 <main>
 <section id="home" class="screen active">
-  <div class="hero"><h2>Một ứng dụng. Nhiều dịch vụ.</h2><p>Đặt món • Giao hàng • Gọi xe</p><button onclick="show('food')">Khám phá NaGo Food →</button></div>
+  <div class="home-greeting"><small>Chào mừng đến với NaGo 👋</small><h2>Hôm nay bạn muốn dùng gì?</h2></div>
+  <div class="hero"><h2>Một ứng dụng. Nhiều dịch vụ.</h2><p>Đặt món • Giao hàng • Gọi xe • Sắp có NaGo Mart</p><button onclick="show('food')">Khám phá NaGo Food →</button></div>
   <div class="services">
     <button class="service" onclick="show('food')"><div class="ico">🍜</div><b>Food</b></button>
     <button class="service" onclick="show('delivery')"><div class="ico">📦</div><b>Giao hàng</b></button>
     <button class="service" onclick="show('ride')"><div class="ico">🛵</div><b>Gọi xe</b></button>
-    <button class="service" onclick="toast('NaGo Mart sẽ ra mắt sau')"><div class="ico">🛒</div><b>Mart</b></button>
+    <button class="service" onclick="toast('NaGo Mart đang được phát triển')"><div class="ico">🛒</div><b>Mart</b></button>
   </div>
-  <div class="section-head"><h3>Quán nổi bật</h3><span onclick="show('food')">Xem tất cả</span></div>
+  <div class="quick-card" onclick="show('orders')" style="cursor:pointer">
+    <div class="quick-icon">🧾</div><div><b>Đơn hàng của bạn</b><div class="meta">Theo dõi trạng thái và lịch sử đơn</div></div><button onclick="event.stopPropagation();show('orders')">Xem đơn</button>
+  </div>
+  <div class="section-head"><h3>Quán nổi bật</h3><span onclick="show('food')">Xem tất cả →</span></div>
   <div id="homeRestaurants"></div>
 </section>
 
@@ -103,7 +129,37 @@ h2{margin:4px 0 14px;font-size:21px}.sub{color:var(--muted);font-size:13px;margi
 <button class="navbtn" data-screen="account" onclick="show('account')"><span>👤</span>Tài khoản</button>
 </nav>
 <div class="toast" id="toast"></div>
-<div class="modal" id="addressModal"><div class="sheet"><button class="close" onclick="closeAddressManager()">×</button><h2>📍 Địa chỉ giao hàng</h2><div id="addressList"></div><div class="account-card" style="margin-top:12px"><b>Thêm địa chỉ mới</b><div class="fields" style="margin-top:10px"><div class="field"><label>TÊN NGƯỜI NHẬN</label><input id="addrName" placeholder="Nguyễn Văn A"></div><div class="field"><label>SỐ ĐIỆN THOẠI</label><input id="addrPhone" placeholder="09xxxxxxxx"></div><div class="field"><label>TÊN GỌI</label><input id="addrLabel" value="Nhà" placeholder="Nhà, Công ty..."></div><div class="field"><label>ĐỊA CHỈ CHI TIẾT</label><input id="addrLine" placeholder="Số nhà, đường, phường/xã..."></div><button type="button" class="secondary" onclick="useCurrentLocation()">📍 Dùng vị trí hiện tại</button><div id="addrLocationStatus" class="meta" style="margin-top:7px">Có thể thêm vị trí để Driver chỉ đường chính xác hơn.</div></div><button class="primary" onclick="saveAddress()">Lưu địa chỉ</button></div></div></div><div class="modal" id="addressSelectModal"><div class="sheet"><button class="close" onclick="closeAddressSelect()">×</button><h2>📍 Chọn địa chỉ giao hàng</h2><div id="checkoutAddressList"></div><button class="primary" onclick="openAddressManagerFromCheckout()">+ Thêm địa chỉ mới</button></div></div><div class="modal" id="authModal"><div class="sheet"><button class="close" onclick="closeAuth()">×</button><h2>👤 NaGo Account</h2><div class="fields"><div class="field"><label>HỌ TÊN</label><input id="authName" placeholder="Tên của bạn"></div><div class="field"><label>EMAIL</label><input id="authEmail" type="email" placeholder="email@example.com"></div><div class="field"><label>MẬT KHẨU</label><input id="authPassword" type="password" placeholder="Tối thiểu 6 ký tự"></div></div><button class="primary" onclick="signIn()">Đăng nhập</button><button class="primary" style="background:#102A43" onclick="signUp()">Tạo tài khoản</button></div></div><div class="modal" id="orderDetailModal"><div class="sheet"><button class="close" onclick="closeOrderDetail()">×</button><div id="orderDetailContent"></div></div></div><div class="modal" id="reviewModal"><div class="sheet"><button class="close" onclick="closeReview()">×</button><div id="reviewContent"></div></div></div><div class="modal" id="cartModal"><div class="sheet"><button class="close" onclick="closeCart()">×</button><h2>🛒 Giỏ hàng</h2><div id="cartItems"></div><div class="row"><b>Tạm tính</b><b id="subtotal">0đ</b></div><div class="row"><span>Phí giao hàng</span><span id="deliveryFee">0đ</span></div><div class="field" style="margin-top:12px"><label>GHI CHÚ CHO QUÁN</label><input id="checkoutNote" placeholder="Ít cay, không hành..."></div><div class="location-permission"><b>📍 Vị trí giao hàng</b><div id="locationPermissionStatus" class="meta">Cần cấp quyền vị trí để NaGo xác định điểm giao hàng.</div><button id="checkoutLocationBtn" class="primary" style="margin-top:8px" onclick="requestDeliveryLocation(true)">📍 Cấp quyền vị trí để đặt hàng</button></div><div style="margin-top:12px"><b>💳 Phương thức thanh toán</b><div style="margin-top:8px;border:1px solid var(--green);background:#eef8f6;border-radius:13px;padding:12px"><b>💵 Thanh toán khi nhận hàng (COD)</b><div class="meta">Thanh toán trực tiếp cho tài xế khi nhận món.</div></div></div><div class="row"><b>Tổng</b><b id="grand">0đ</b></div><button class="primary" onclick="checkout()">Đặt hàng COD</button></div></div>
+<div class="modal" id="addressModal"><div class="sheet"><button class="close" onclick="closeAddressManager()">×</button><h2>📍 Địa chỉ giao hàng</h2><div id="addressList"></div><div class="account-card" style="margin-top:12px"><b>Thêm địa chỉ mới</b><div class="fields" style="margin-top:10px"><div class="field"><label>TÊN NGƯỜI NHẬN</label><input id="addrName" placeholder="Nguyễn Văn A"></div><div class="field"><label>SỐ ĐIỆN THOẠI</label><input id="addrPhone" placeholder="09xxxxxxxx"></div><div class="field"><label>TÊN GỌI</label><input id="addrLabel" value="Nhà" placeholder="Nhà, Công ty..."></div><div class="field"><label>ĐỊA CHỈ CHI TIẾT</label><input id="addrLine" placeholder="Số nhà, đường, phường/xã..."></div><button type="button" class="secondary" onclick="useCurrentLocation()">📍 Dùng vị trí hiện tại</button><div id="addrLocationStatus" class="meta" style="margin-top:7px">Có thể thêm vị trí để Driver chỉ đường chính xác hơn.</div></div><button class="primary" onclick="saveAddress()">Lưu địa chỉ</button></div></div></div><div class="modal" id="addressSelectModal"><div class="sheet"><button class="close" onclick="closeAddressSelect()">×</button><h2>📍 Chọn địa chỉ giao hàng</h2><div id="checkoutAddressList"></div><button class="primary" onclick="openAddressManagerFromCheckout()">+ Thêm địa chỉ mới</button></div></div><div class="modal" id="authModal"><div class="sheet">
+  <button class="close" onclick="closeAuth()">×</button>
+  <div class="auth-shell">
+    <div class="auth-brand"><div class="auth-logo">N</div><h2>NaGo Account</h2><p>Đăng nhập nhanh bằng số điện thoại</p></div>
+    <div class="auth-tabs">
+      <button id="authTabLogin" class="auth-tab active" onclick="switchAuthMode('login')">Đăng nhập</button>
+      <button id="authTabRegister" class="auth-tab" onclick="switchAuthMode('register')">Đăng ký</button>
+    </div>
+    <div id="authLoginPane" class="auth-pane active">
+      <div class="field"><label>SỐ ĐIỆN THOẠI</label><div class="phone-input"><span class="phone-prefix">+84</span><input id="loginPhone" inputmode="tel" placeholder="9xxxxxxxx" maxlength="10"></div></div>
+      <button class="primary" onclick="requestZaloOtp('login')">Gửi mã OTP qua Zalo</button>
+      <div class="auth-note">Mã xác thực sẽ được gửi qua Zalo Official Account của NaGo sau khi kết nối ZBS.</div>
+      <button class="auth-secondary" onclick="toggleEmailAuth()">Đăng nhập bằng email</button>
+      <div id="emailAuthBox" class="auth-email">
+        <div class="auth-divider"><span>Email hiện tại</span></div>
+        <div class="fields"><div class="field"><label>EMAIL</label><input id="authEmail" type="email" placeholder="email@example.com"></div><div class="field"><label>MẬT KHẨU</label><input id="authPassword" type="password" placeholder="Mật khẩu"></div></div>
+        <button class="primary" onclick="signIn()">Đăng nhập email</button>
+      </div>
+      <button class="auth-link" onclick="switchAuthMode('register')">Chưa có tài khoản? Đăng ký</button>
+    </div>
+    <div id="authRegisterPane" class="auth-pane">
+      <div class="fields">
+        <div class="field"><label>HỌ VÀ TÊN</label><input id="authName" placeholder="Tên của bạn"></div>
+        <div class="field"><label>SỐ ĐIỆN THOẠI</label><div class="phone-input"><span class="phone-prefix">+84</span><input id="registerPhone" inputmode="tel" placeholder="9xxxxxxxx" maxlength="10"></div></div>
+      </div>
+      <button class="primary" onclick="requestZaloOtp('register')">Gửi mã đăng ký qua Zalo</button>
+      <div class="auth-note">NaGo sẽ xác thực số điện thoại bằng OTP trên Zalo. Không cần nhớ mật khẩu.</div>
+      <button class="auth-link" onclick="switchAuthMode('login')">Đã có tài khoản? Đăng nhập</button>
+    </div>
+  </div>
+</div></div></div><div class="modal" id="orderDetailModal"><div class="sheet"><button class="close" onclick="closeOrderDetail()">×</button><div id="orderDetailContent"></div></div></div><div class="modal" id="reviewModal"><div class="sheet"><button class="close" onclick="closeReview()">×</button><div id="reviewContent"></div></div></div><div class="modal" id="cartModal"><div class="sheet"><button class="close" onclick="closeCart()">×</button><h2>🛒 Giỏ hàng</h2><div id="cartItems"></div><div class="row"><b>Tạm tính</b><b id="subtotal">0đ</b></div><div class="row"><span>Phí giao hàng</span><span id="deliveryFee">0đ</span></div><div class="field" style="margin-top:12px"><label>GHI CHÚ CHO QUÁN</label><input id="checkoutNote" placeholder="Ít cay, không hành..."></div><div class="location-permission"><b>📍 Vị trí giao hàng</b><div id="locationPermissionStatus" class="meta">Cần cấp quyền vị trí để NaGo xác định điểm giao hàng.</div><button id="checkoutLocationBtn" class="primary" style="margin-top:8px" onclick="requestDeliveryLocation(true)">📍 Cấp quyền vị trí để đặt hàng</button></div><div style="margin-top:12px"><b>💳 Phương thức thanh toán</b><div style="margin-top:8px;border:1px solid var(--green);background:#eef8f6;border-radius:13px;padding:12px"><b>💵 Thanh toán khi nhận hàng (COD)</b><div class="meta">Thanh toán trực tiếp cho tài xế khi nhận món.</div></div></div><div class="row"><b>Tổng</b><b id="grand">0đ</b></div><button class="primary" onclick="checkout()">Đặt hàng COD</button></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -340,10 +396,32 @@ function searchFood(){let q=document.getElementById('search').value.toLowerCase(
 function toast(t){let x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
 function showAuth(){document.getElementById('authModal').classList.add('show')}
 function closeAuth(){document.getElementById('authModal').classList.remove('show')}
+function switchAuthMode(mode){
+  const login=mode==='login';
+  document.getElementById('authLoginPane').classList.toggle('active',login);
+  document.getElementById('authRegisterPane').classList.toggle('active',!login);
+  document.getElementById('authTabLogin').classList.toggle('active',login);
+  document.getElementById('authTabRegister').classList.toggle('active',!login);
+}
+function toggleEmailAuth(){const x=document.getElementById('emailAuthBox');if(x)x.classList.toggle('show')}
+function normalizeVNPhone(value){
+  let v=String(value||'').replace(/[^0-9+]/g,'');
+  if(v.startsWith('+84'))v=v.slice(3);
+  if(v.startsWith('84'))v=v.slice(2);
+  if(v.startsWith('0'))v=v.slice(1);
+  return v.length===9&&/^\d{9}$/.test(v)?'+84'+v:null;
+}
+function requestZaloOtp(mode){
+  const input=document.getElementById(mode==='login'?'loginPhone':'registerPhone');
+  const phone=normalizeVNPhone(input?.value);
+  if(!phone)return toast('Nhập số điện thoại Việt Nam hợp lệ');
+  toast('Zalo OTP đang chờ kết nối OA/ZBS của NaGo');
+  // Backend Zalo ZBS will be connected after OA/App/Template configuration.
+}
 async function signUp(){
-  const name=document.getElementById('authName').value.trim();
-  const email=document.getElementById('authEmail').value.trim();
-  const password=document.getElementById('authPassword').value;
+  const name=document.getElementById('authName')?.value.trim()||'';
+  const email=document.getElementById('authEmail')?.value.trim()||'';
+  const password=document.getElementById('authPassword')?.value||'';
   if(!email||password.length<6)return toast('Nhập email và mật khẩu từ 6 ký tự');
   const {data,error}=await nagoSupabase.auth.signUp({email,password,options:{data:{full_name:name}}});
   if(error)return toast(error.message);
@@ -358,8 +436,8 @@ async function signUp(){
   }
 }
 async function signIn(){
-  const email=document.getElementById('authEmail').value.trim();
-  const password=document.getElementById('authPassword').value;
+  const email=document.getElementById('authEmail')?.value.trim()||'';
+  const password=document.getElementById('authPassword')?.value||'';
   if(!email||!password)return toast('Nhập email và mật khẩu');
   const {data,error}=await nagoSupabase.auth.signInWithPassword({email,password});
   if(error){
