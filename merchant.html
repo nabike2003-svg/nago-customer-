@@ -27,9 +27,15 @@ function merchantHardLogout(){
 <main id="app"><div class="card"><b>Đang tải dữ liệu...</b></div></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const URL="https://rnyymflpnidkgetmdwwx.supabase.co";
-const KEY="sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx";
-const db=window.supabase.createClient(URL,KEY,{auth:{storageKey:"nago_merchant_auth",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const SUPABASE_URL="https://rnyymflpnidkgetmdwwx.supabase.co";
+const SUPABASE_KEY="sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx";
+let db=null;
+try{
+  db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:"nago_merchant_auth",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+}catch(e){
+  console.error("NaGo Merchant Supabase init error",e);
+  db=null;
+}
 const app=document.getElementById("app");
 let user=null,shops=[],merchantRealtime=null,authListener=null;
 const MERCHANT_STORAGE_KEY="nago_merchant_auth";
@@ -47,6 +53,10 @@ function showLoadError(message){
 }
 async function start(){
  try{
+   if(!db){
+     login("Không khởi tạo được kết nối hệ thống. Hãy tải lại trang.");
+     return;
+   }
    const forceLogin=new URLSearchParams(window.location.search).get("login")==="1";
    if(forceLogin){
      try{localStorage.removeItem(MERCHANT_STORAGE_KEY)}catch(_){}
