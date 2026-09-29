@@ -20,7 +20,7 @@ function driverHardLogout(){
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const db=window.supabase.createClient("https://rnyymflpnidkgetmdwwx.supabase.co","sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx",{auth:{storageKey:"nago_driver_auth",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-let user=null,online=false,approved=false,driverRealtime=null;const app=document.getElementById("app");
+let user=null,online=false,approved=false,driverRealtime=null,driverStats={delivered:0,revenue:0,assigned:0};const app=document.getElementById("app");
 const labels={ready_for_pickup:"Chờ tài xế",driver_assigned:"Đã nhận đơn",picked_up:"Đã lấy hàng",delivering:"Đang giao",delivered:"Đã giao"};
 const money=n=>new Intl.NumberFormat("vi-VN").format(Number(n)||0)+"đ";
 function startDriverRealtime(){
@@ -80,8 +80,10 @@ async function load(){
    all=data||[];
  }
  const mine=all.filter(o=>o.driver_id===user.id), waiting=all.filter(o=>o.status==="ready_for_pickup"&&!o.driver_id);
+ const delivered=mine.filter(o=>o.status==="delivered");
+ driverStats={delivered:delivered.length,revenue:delivered.reduce((s,o)=>s+(Number(o.total)||0),0),assigned:mine.length};
  app.innerHTML='<div class="hero"><div><div class="muted">Xin chào</div><h1>Trung tâm tài xế</h1><div id="sub" class="'+(approved?"approved":"notapproved")+'">'+(approved?(online?"🟢 Đang online":"⚪ Đang offline"):"⏳ Chờ Admin duyệt")+'</div></div><button class="btn gray" onclick="logout()">Đăng xuất</button></div>'+
- '<div class="stats"><div class="stat">🛵<div class="muted">Đơn chờ nhận</div><b>'+waiting.length+'</b></div><div class="stat">📦<div class="muted">Đơn của tôi</div><b>'+mine.length+'</b></div><div class="stat"><div class="muted">Trạng thái</div><b style="font-size:16px">'+(approved?(online?"ONLINE":"OFFLINE"):"CHỜ DUYỆT")+'</b></div></div>'+
+ '<div class="stats"><div class="stat">🛵<div class="muted">Đơn chờ nhận</div><b>'+waiting.length+'</b></div><div class="stat">📦<div class="muted">Đơn của tôi</div><b>'+mine.length+'</b></div><div class="stat"><div class="muted">Trạng thái</div><b style="font-size:16px">'+(approved?(online?"ONLINE":"OFFLINE"):"CHỜ DUYỆT")+'</b></div><div class="stat">✅<div class="muted">Đã giao</div><b>'+driverStats.delivered+'</b></div><div class="stat">💰<div class="muted">Giá trị đơn đã giao</div><b style="font-size:18px">'+money(driverStats.revenue)+'</b></div><div class="stat">⭐<div class="muted">Đánh giá</div><b style="font-size:18px">Xem hồ sơ</b></div></div>'+
  '<div class="card"><div class="statusbar"><div><b>Trạng thái nhận đơn</b><div class="muted">Driver phải được Admin duyệt mới có thể Online.</div></div><button class="btn '+(online?"orange":"")+'" onclick="toggleOnline()">'+(online?"Tắt Online":"Bật Online")+'</button></div></div>'+
  '<h2>Đơn hàng của tôi</h2>'+ (mine.length?mine.map(o=>card(o,false)).join(""):'<div class="card"><span class="muted">Chưa có đơn đang phụ trách.</span></div>')+
  '<h2>Đơn đang chờ tài xế</h2>'+ (approved&&online?(waiting.length?waiting.map(o=>card(o,true)).join(""):'<div class="card"><span class="muted">Hiện không có đơn chờ nhận.</span></div>'):'<div class="card"><span class="muted">Bật Online sau khi tài khoản được duyệt để nhận đơn.</span></div>');
