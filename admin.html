@@ -93,6 +93,20 @@ async function enter(){
  }
  document.getElementById('loginBox').classList.add('hidden');document.getElementById('app').classList.remove('hidden');document.getElementById('logout').classList.remove('hidden');await loadAll();
 }
+function notifyAdmin(title,body){
+ try{if("Notification" in window&&Notification.permission==="granted")new Notification(title,{body});}catch(e){}
+}
+async function enableAdminNotifications(){
+ if(!("Notification" in window))return;
+ if(Notification.permission==="default")try{await Notification.requestPermission()}catch(e){}
+}
+function startAdminRealtime(){
+ if(window.adminRealtime)return;
+ window.adminRealtime=nagoSupabase.channel("nago-admin-orders")
+ .on("postgres_changes",{event:"INSERT",schema:"public",table:"orders"},payload=>{notifyAdmin("NaGo Admin","Có đơn hàng mới #"+String(payload.new.id).slice(0,8));loadAll()})
+ .on("postgres_changes",{event:"UPDATE",schema:"public",table:"orders"},payload=>{notifyAdmin("NaGo Admin","Đơn #"+String(payload.new.id).slice(0,8)+" → "+(payload.new.status||""));loadAll()})
+ .subscribe();
+}
 async function loadAll(){
  const [d,u,s,o,dr,a]=await Promise.all([nagoSupabase.rpc('admin_dashboard'),nagoSupabase.rpc('admin_list_users'),nagoSupabase.rpc('admin_list_shops'),nagoSupabase.rpc('admin_list_orders'),nagoSupabase.rpc('admin_list_approved_drivers'),nagoSupabase.rpc('admin_analytics')]);
  if(d.error||u.error||s.error||o.error||dr.error||a.error){note((d.error||u.error||s.error||o.error||dr.error||a.error).message,true);return}
