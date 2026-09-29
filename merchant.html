@@ -20,7 +20,7 @@ input{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;ma
 function merchantHardLogout(){
   try{localStorage.removeItem("nago_merchant_auth")}catch(_){}
   try{sessionStorage.removeItem("nago_merchant_auth")}catch(_){}
-  window.location.href=window.location.pathname+"?login=1";
+  window.location.replace(window.location.pathname+"?login=1&logout=1&t="+Date.now());
 }
 </script>
 <header><div class="top"><div class="brand"><div class="logo">N</div><div><b>NaGo Merchant</b><small>Trung tâm quản lý quán</small></div></div><button class="btn gray" onclick="merchantHardLogout()">Đăng xuất</button></div></header>
