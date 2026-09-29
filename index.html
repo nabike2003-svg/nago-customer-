@@ -105,9 +105,9 @@ h2{margin:4px 0 14px;font-size:21px}.sub{color:var(--muted);font-size:13px;margi
 <div class="toast" id="toast"></div>
 <div class="modal" id="authModal"><div class="sheet"><button class="close" onclick="closeAuth()">×</button><h2>👤 NaGo Account</h2><div class="fields"><div class="field"><label>HỌ TÊN</label><input id="authName" placeholder="Tên của bạn"></div><div class="field"><label>EMAIL</label><input id="authEmail" type="email" placeholder="email@example.com"></div><div class="field"><label>MẬT KHẨU</label><input id="authPassword" type="password" placeholder="Tối thiểu 6 ký tự"></div></div><button class="primary" onclick="signIn()">Đăng nhập</button><button class="primary" style="background:#102A43" onclick="signUp()">Tạo tài khoản</button></div></div><div class="modal" id="cartModal"><div class="sheet"><button class="close" onclick="closeCart()">×</button><h2>🛒 Giỏ hàng</h2><div id="cartItems"></div><div class="row"><b>Tạm tính</b><b id="subtotal">0đ</b></div><div class="row"><span>Phí giao hàng</span><span>15.000đ</span></div><div class="row"><b>Tổng</b><b id="grand">15.000đ</b></div><button class="primary" onclick="checkout()">Đặt hàng</button></div></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@nagoSupabase/nagoSupabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL="https://rnyymflpnidkgetmdwwx.nagoSupabase.co";
+const SUPABASE_URL="https://rnyymflpnidkgetmdwwx.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx";
 const nagoSupabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 let restaurants=[];
