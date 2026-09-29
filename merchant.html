@@ -37,7 +37,7 @@ try{
   db=null;
 }
 const app=document.getElementById("app");
-let user=null,shops=[],merchantRealtime=null,authListener=null;
+let user=null,shops=[],merchantRealtime=null,authListener=null,merchantAudio=null,merchantNotifiedOrders=new Set();
 const MERCHANT_STORAGE_KEY="nago_merchant_auth";
 const labels={pending:"Đã đặt",shop_accepted:"Quán đã nhận",preparing:"Đang chuẩn bị",ready_for_pickup:"Chờ tài xế",driver_assigned:"Đã có tài xế",picked_up:"Đã lấy hàng",delivering:"Đang giao",delivered:"Đã giao",rejected:"Đã từ chối",cancelled:"Đã hủy"};
 const money=n=>new Intl.NumberFormat("vi-VN").format(Number(n)||0)+"đ";
@@ -47,6 +47,20 @@ function withTimeout(promise,ms,label){
    promise,
    new Promise((_,reject)=>setTimeout(()=>reject(new Error(label||"TIMEOUT")),ms))
  ]);
+}
+function notifyNewOrder(order){
+ try{
+   if(order?.id && merchantNotifiedOrders.has(order.id))return;
+   if(order?.id)merchantNotifiedOrders.add(order.id);
+   if("Notification" in window && Notification.permission==="granted") new Notification("NaGo — Đơn mới",{body:"Có đơn hàng mới cần xử lý.",tag:"nago-order-"+(order?.id||Date.now())});
+   if(!merchantAudio) merchantAudio=new (window.AudioContext||window.webkitAudioContext)();
+   const o=merchantAudio,now=o.currentTime,g=o.createGain(),osc=o.createOscillator();
+   osc.type="sine";osc.frequency.setValueAtTime(880,now);osc.frequency.setValueAtTime(660,now+0.16);g.gain.setValueAtTime(0.0001,now);g.gain.exponentialRampToValueAtTime(0.12,now+0.02);g.gain.exponentialRampToValueAtTime(0.0001,now+0.32);osc.connect(g);g.connect(o.destination);osc.start(now);osc.stop(now+0.34);
+ }catch(_){ }
+}
+function enableMerchantNotifications(){
+ if("Notification" in window && Notification.permission==="default") Notification.requestPermission().catch(()=>{});
+ try{if(!merchantAudio)merchantAudio=new (window.AudioContext||window.webkitAudioContext)();}catch(_){ }
 }
 function showLoadError(message){
  app.innerHTML='<div class="card"><b>NaGo Merchant đang gặp lỗi tải dữ liệu.</b><p class="muted">'+esc(message)+'</p><div class="actions"><button class="btn" onclick="start()">↻ Thử lại</button><button class="btn gray" onclick="logout()">Đăng xuất</button></div></div>';
@@ -155,7 +169,10 @@ async function load(){
    if(merchantRealtime)try{await db.removeChannel(merchantRealtime)}catch(_){}
    merchantRealtime=db.channel("nago-merchant-orders-"+user.id)
      .on("postgres_changes",{event:"*",schema:"public",table:"orders"},payload=>{
-       if(ids.includes(payload.new?.shop_id)||ids.includes(payload.old?.shop_id))setTimeout(()=>load(),0);
+       if(ids.includes(payload.new?.shop_id)||ids.includes(payload.old?.shop_id)){
+         if(payload.eventType==="INSERT" || (payload.eventType==="UPDATE" && payload.new?.status==="pending")) notifyNewOrder(payload.new||payload.old);
+         setTimeout(()=>load(),0);
+       }
      }).subscribe();
    const r2=await withTimeout(
      db.from("orders").select("id,shop_id,status,subtotal,delivery_fee,discount,total,payment_method,payment_status,created_at,address:user_addresses(label,recipient_name,phone,address_line),items:order_items(product_name,quantity,unit_price,line_total)").in("shop_id",ids).order("created_at",{ascending:false}).limit(50),
@@ -173,7 +190,7 @@ async function load(){
 function render(orders){
  const count=s=>orders.filter(o=>o.status===s).length;
  const shopName=shops.length===1?esc(shops[0].name):shops.length+" cửa hàng";
- let html='<div class="hero"><div><div class="muted">Xin chào</div><h1>'+shopName+'</h1><div class="muted">Theo dõi và xử lý đơn hàng theo thời gian thực.</div></div><button class="btn" onclick="load()">↻ Làm mới</button></div>';
+ let html='<div class="hero"><div><div class="muted">Xin chào</div><h1>'+shopName+'</h1><div class="muted">Theo dõi và xử lý đơn hàng theo thời gian thực.</div></div><div class="actions"><button class="btn" onclick="load()">↻ Làm mới</button><button class="btn gray" onclick="enableMerchantNotifications()">🔔 Thông báo đơn</button></div></div>';
  html+='<div class="stats"><div class="stat">🆕<div class="muted">Đơn mới</div><b>'+count("pending")+'</b></div><div class="stat">🍳<div class="muted">Đang chuẩn bị</div><b>'+count("preparing")+'</b></div><div class="stat">🛵<div class="muted">Chờ tài xế</div><b>'+count("ready_for_pickup")+'</b></div><div class="stat">✓<div class="muted">Đã giao</div><b>'+count("delivered")+'</b></div></div>';
  html+='<div class="layout"><aside><div class="card"><b>Cửa hàng của tôi</b>'+shops.map(s=>'<div class="shop active"><b>'+esc(s.name)+'</b><div class="muted">'+esc(s.address||"Chưa có địa chỉ")+'</div><div class="muted">'+(s.is_active?"● Đang hoạt động":"○ Tạm ngưng")+'</div></div>').join("")+'</div></aside><section><div class="tabs"><button class="tab on" onclick="filterOrders(\'all\')">Tất cả</button><button class="tab" onclick="filterOrders(\'pending\')">Đơn mới</button><button class="tab" onclick="filterOrders(\'preparing\')">Đang làm</button><button class="tab" onclick="filterOrders(\'ready_for_pickup\')">Chờ tài xế</button></div><div id="orderList"></div></section></div>';
  app.innerHTML=html; window.merchantOrders=orders; filterOrders("all");
