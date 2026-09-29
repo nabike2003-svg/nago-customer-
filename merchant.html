@@ -16,7 +16,14 @@ input{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;ma
 </style>
 </head>
 <body>
-<header><div class="top"><div class="brand"><div class="logo">N</div><div><b>NaGo Merchant</b><small>Trung tâm quản lý quán</small></div></div><button class="btn gray" onclick="logout()">Đăng xuất</button></div></header>
+<script>
+function merchantHardLogout(){
+  try{localStorage.removeItem("nago_merchant_auth")}catch(_){}
+  try{sessionStorage.removeItem("nago_merchant_auth")}catch(_){}
+  window.location.href=window.location.pathname+"?login=1";
+}
+</script>
+<header><div class="top"><div class="brand"><div class="logo">N</div><div><b>NaGo Merchant</b><small>Trung tâm quản lý quán</small></div></div><button class="btn gray" onclick="merchantHardLogout()">Đăng xuất</button></div></header>
 <main id="app"><div class="card"><b>Đang tải dữ liệu...</b></div></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -101,7 +108,6 @@ async function signin(){
  }
 }
 function logout(){
- // Thoát giao diện ngay lập tức, không chờ mạng/Supabase.
  user=null;
  try{if(merchantRealtime)db.removeChannel(merchantRealtime)}catch(_){}
  merchantRealtime=null;
@@ -110,7 +116,6 @@ function logout(){
  try{localStorage.removeItem(MERCHANT_STORAGE_KEY)}catch(_){}
  try{sessionStorage.clear()}catch(_){}
  login("Đã đăng xuất. Bạn có thể đăng nhập bằng tài khoản Merchant vừa tạo.");
- // Dọn phiên Supabase ở nền; không được phép khóa giao diện.
  Promise.resolve(db.auth.signOut({scope:"local"})).catch(()=>{});
 }
 async function load(){
