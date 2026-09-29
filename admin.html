@@ -27,7 +27,7 @@ main{max-width:1100px;margin:auto;padding:18px 14px 50px}.login,.panel,.stat{bac
 <input id="email" type="email" placeholder="Email">
 <input id="password" type="password" placeholder="Mật khẩu">
 <button class="primary" style="width:100%" onclick="signIn()">Đăng nhập</button><button class="ghost" style="width:100%;margin-top:8px" onclick="resetPassword()">Quên mật khẩu?</button>
-<div id="loginMsg"></div>
+<div id="loginMsg"></div><div id="recoveryBox" class="hidden"><h2 style="color:var(--n);margin:18px 0 8px">Đặt mật khẩu mới</h2><input id="newPassword" type="password" placeholder="Mật khẩu mới (từ 6 ký tự)"><input id="newPassword2" type="password" placeholder="Nhập lại mật khẩu mới"><button class="primary" style="width:100%" onclick="updatePassword()">Đặt mật khẩu mới</button><div id="recoveryMsg"></div></div>
 </section>
 <section id="app" class="hidden">
 <div id="msg"></div>
@@ -49,7 +49,7 @@ let currentUser=null, users=[], shops=[], orders=[], drivers=[];
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 const money=v=>new Intl.NumberFormat('vi-VN').format(Number(v)||0)+'đ';
 function note(s,err=false){document.getElementById('msg').innerHTML=s?'<div class="error" style="'+(err?'':'background:#e9faf5;color:#18794e')+'">'+esc(s)+'</div>':''}
-async function resetPassword(){
+function showRecovery(){document.getElementById("recoveryBox").classList.remove("hidden");document.getElementById("loginBox").classList.remove("hidden");document.getElementById("loginMsg").innerHTML="<div class=\"error\" style=\"background:#e9faf5;color:#18794e\">Bạn đã mở liên kết khôi phục. Hãy nhập mật khẩu mới bên dưới.</div>";document.getElementById("email").classList.add("hidden");document.getElementById("password").classList.add("hidden");document.querySelector("#loginBox > .primary").classList.add("hidden");document.querySelector("#loginBox > .ghost").classList.add("hidden")}\nasync function updatePassword(){const p=document.getElementById("newPassword").value,p2=document.getElementById("newPassword2").value,box=document.getElementById("recoveryMsg");if(p.length<6)return box.innerHTML="<div class=\"error\">Mật khẩu phải từ 6 ký tự.</div>";if(p!==p2)return box.innerHTML="<div class=\"error\">Hai mật khẩu không khớp.</div>";const {error}=await nagoSupabase.auth.updateUser({password:p});if(error)return box.innerHTML="<div class=\"error\">"+esc(error.message)+"</div>";box.innerHTML="<div class=\"error\" style=\"background:#e9faf5;color:#18794e\">Đổi mật khẩu thành công. Đang vào Admin...</div>";setTimeout(()=>enter(),500)}\nasync function resetPassword(){
  const email=document.getElementById('email').value.trim();
  const box=document.getElementById('loginMsg');
  if(!email){box.innerHTML='<div class="error">Nhập email trước khi đặt lại mật khẩu.</div>';return}
@@ -108,6 +108,6 @@ async function assignDriver(orderId,driverId){
 }
 
 function showTab(t){document.getElementById('usersPanel').classList.toggle('hidden',t!=='users');document.getElementById('shopsPanel').classList.toggle('hidden',t!=='shops');document.getElementById('ordersPanel').classList.toggle('hidden',t!=='orders');document.getElementById('tabUsers').classList.toggle('active',t==='users');document.getElementById('tabShops').classList.toggle('active',t==='shops');document.getElementById('tabOrders').classList.toggle('active',t==='orders')}
-(async()=>{const {data}=await nagoSupabase.auth.getSession();currentUser=data.session?.user||null;if(currentUser)await enter();nagoSupabase.auth.onAuthStateChange((_e,s)=>{currentUser=s?.user||null;if(currentUser)enter()})})();
+(async()=>{const {data}=await nagoSupabase.auth.getSession();currentUser=data.session?.user||null;if(window.location.hash.includes("type=recovery"))showRecovery();else if(currentUser)await enter();nagoSupabase.auth.onAuthStateChange((_e,s)=>{currentUser=s?.user||null;if(_e==="PASSWORD_RECOVERY"){showRecovery();return}if(currentUser&&!window.location.hash.includes("type=recovery"))enter()})})();
 </script>
 </body></html>
