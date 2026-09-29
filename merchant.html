@@ -155,39 +155,27 @@ function logout(){
 }
 async function load(){
  try{
-   const r=await withTimeout(
-     db.from("shops").select("id,name,address,phone,is_active").eq("owner_id",user.id).order("name"),
-     8000,
-     "Tải danh sách shop quá thời gian chờ."
-   );
-   const data=r.data,error=r.error;
-   if(error){showLoadError("Không tải được shop: "+error.message);return}
-   shops=data||[];
-   if(!shops.length){
-     app.innerHTML='<div class="card"><b>Chưa có shop được gán cho tài khoản này.</b><p class="muted">Admin cần dùng chức năng gán shop để đặt chủ shop cho tài khoản Merchant.</p><button class="btn gray" onclick="logout()">Đăng xuất</button></div>';
-     return;
-   }
-   const ids=shops.map(x=>x.id); const pr=await db.from("products").select("id,shop_id,name,price,is_available").in("shop_id",ids).order("name"); window.merchantProducts=pr.data||[];
-   if(merchantRealtime)try{await db.removeChannel(merchantRealtime)}catch(_){}
-   merchantRealtime=db.channel("nago-merchant-orders-"+user.id)
-     .on("postgres_changes",{event:"*",schema:"public",table:"orders"},payload=>{
-       if(ids.includes(payload.new?.shop_id)||ids.includes(payload.old?.shop_id)){
-         if(payload.eventType==="INSERT" || (payload.eventType==="UPDATE" && payload.new?.status==="pending")) notifyNewOrder(payload.new||payload.old);
-         setTimeout(()=>load(),0);
-       }
-     }).subscribe();
-   const r2=await withTimeout(
-     db.from("orders").select("id,shop_id,status,subtotal,delivery_fee,discount,total,payment_method,payment_status,created_at,address:user_addresses(label,recipient_name,phone,address_line),items:order_items(product_name,quantity,unit_price,line_total)").in("shop_id",ids).order("created_at",{ascending:false}).limit(50),
-     10000,
-     "Tải danh sách đơn quá thời gian chờ."
-   );
-   const orders=r2.data,oe=r2.error;
-   if(oe){showLoadError("Không tải được đơn: "+oe.message);return}
-   render(orders||[]);
- }catch(e){
-   console.error("Merchant load error",e);
-   showLoadError(e.message||"Không tải được dữ liệu Merchant.");
- }
+  const r=await withTimeout(db.rpc("merchant_get_data"),10000,"Không tải được dữ liệu Merchant.");
+  if(r.error){showLoadError("Không tải được dữ liệu Merchant: "+r.error.message);return}
+  const payload=r.data||{};
+  shops=payload.shops||[];
+  window.merchantProducts=payload.products||[];
+  window.merchantOrders=payload.orders||[];
+  if(!shops.length){
+   app.innerHTML='<div class="card"><b>Tài khoản Merchant chưa được gán cửa hàng.</b><p class="muted">Admin cần gán cửa hàng cho tài khoản này.</p><button class="btn gray" onclick="logout()">Đăng xuất</button></div>';
+   return;
+  }
+  if(merchantRealtime)try{await db.removeChannel(merchantRealtime)}catch(_){}
+  const ids=shops.map(x=>x.id);
+  merchantRealtime=db.channel("nago-merchant-orders-"+user.id)
+   .on("postgres_changes",{event:"*",schema:"public",table:"orders"},payload=>{
+    if(ids.includes(payload.new?.shop_id)||ids.includes(payload.old?.shop_id)){
+     if(payload.eventType==="INSERT")notifyNewOrder(payload.new||payload.old);
+     setTimeout(()=>load(),100);
+    }
+   }).subscribe();
+  render(window.merchantOrders);
+ }catch(e){console.error(e);showLoadError(e.message||"Không tải được dữ liệu Merchant.")}
 }
 async function merchantAnalytics(){ const r=await db.rpc("merchant_dashboard"); return r.error?null:(r.data?.[0]||null); }
 function render(orders){
