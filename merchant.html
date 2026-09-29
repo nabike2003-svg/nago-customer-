@@ -100,15 +100,18 @@ async function signin(){
    alert(e.message||"Không đăng nhập được.");
  }
 }
-async function logout(){
- try{if(merchantRealtime)await db.removeChannel(merchantRealtime)}catch(_){}
+function logout(){
+ // Thoát giao diện ngay lập tức, không chờ mạng/Supabase.
+ user=null;
+ try{if(merchantRealtime)db.removeChannel(merchantRealtime)}catch(_){}
  merchantRealtime=null;
  try{if(authListener?.data?.subscription)authListener.data.subscription.unsubscribe()}catch(_){}
  authListener=null;
- try{await withTimeout(db.auth.signOut({scope:"local"}),3000,"LOGOUT_TIMEOUT")}catch(e){console.warn("Merchant logout:",e)}
  try{localStorage.removeItem(MERCHANT_STORAGE_KEY)}catch(_){}
- user=null;
- login("Đã đăng xuất. Bạn có thể đăng nhập lại bằng tài khoản Merchant.");
+ try{sessionStorage.clear()}catch(_){}
+ login("Đã đăng xuất. Bạn có thể đăng nhập bằng tài khoản Merchant vừa tạo.");
+ // Dọn phiên Supabase ở nền; không được phép khóa giao diện.
+ Promise.resolve(db.auth.signOut({scope:"local"})).catch(()=>{});
 }
 async function load(){
  try{
