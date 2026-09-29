@@ -216,7 +216,13 @@ async function renderMerchantOrders(range="day"){
  merchantRenderShell("Đơn hàng",'<div class="tabs"><button class="tab '+(range==="day"?"on":"")+'" onclick="renderMerchantOrders(\'day\')">Hôm nay</button><button class="tab '+(range==="month"?"on":"")+'" onclick="renderMerchantOrders(\'month\')">Tháng này</button><button class="tab '+(range==="year"?"on":"")+'" onclick="renderMerchantOrders(\'year\')">Năm nay</button></div><div class="card"><b>'+by.length+' đơn</b></div><div id="merchantOrderList" style="margin-top:10px"></div>');
  window.merchantOrders=orders;
  const list=document.getElementById("merchantOrderList");
- list.innerHTML=orders.length?orders.map(o=>'<div class="card order"><div class="orderhead"><div><b>#'+o.id.slice(0,8)+'</b><div class="muted">'+new Date(o.created_at).toLocaleString("vi-VN")+'</div></div><span class="pill">'+(labels[o.status]||o.status)+'</span></div><div class="row"><b>'+money(o.total)+'</b><button class="detail-btn" onclick="openOrderDetail(\''+o.id+'\')">👁 Chi tiết</button></div></div>').join(""):'<div class="card"><span class="muted">Không có đơn trong khoảng này.</span></div>';
+ list.innerHTML=orders.length?orders.map(o=>{
+ const b=[];
+ if(o.status==="pending")b.push('<button class="btn" onclick="move(\\''+o.id+'\\',\\'shop_accepted\\')">✓ Nhận đơn</button>','<button class="btn red" onclick="move(\\''+o.id+'\\',\\'rejected\\')">Từ chối</button>');
+ if(o.status==="shop_accepted")b.push('<button class="btn" onclick="move(\\''+o.id+'\\',\\'preparing\\')">🍳 Bắt đầu chuẩn bị</button>');
+ if(o.status==="preparing")b.push('<button class="btn" onclick="move(\\''+o.id+'\\',\\'ready_for_pickup\\')">🛵 Sẵn sàng cho tài xế</button>');
+ return '<div class="card order"><div class="orderhead"><div><b>#'+o.id.slice(0,8)+'</b><div class="muted">'+new Date(o.created_at).toLocaleString("vi-VN")+'</div></div><span class="pill '+statusPill(o.status,o.payment_status)+'">'+(labels[o.status]||o.status)+'</span></div><div class="row"><b>'+money(o.total)+'</b><span class="muted">'+(o.payment_method==="cod"?"COD":"Thanh toán")+'</span></div><div class="actions"><button class="detail-btn" onclick="openOrderDetail(\\''+o.id+'\\')">👁 Chi tiết</button>'+b.join("")+'</div></div>';
+}).join(""):'<div class="card"><span class="muted">Không có đơn trong khoảng này.</span></div>';
 }
 async function renderMerchantRevenue(range="day"){
  const orders=await merchantLoadRange(range), delivered=orders.filter(o=>o.status==="delivered"), revenue=delivered.reduce((s,o)=>s+Number(o.total||0),0), codOutstanding=orders.filter(o=>o.status==="delivered"&&o.payment_method==="cod"&&o.payment_status==="unpaid").reduce((s,o)=>s+Number(o.total||0),0);
@@ -321,9 +327,10 @@ async function moveAndClose(id,status){closeOrderDetail();await move(id,status)}
 function closeOrderDetail(){document.getElementById("orderModal")?.classList.remove("show")}
 async function move(id,status){
  const note=status==="rejected"?"Quán từ chối đơn":status==="shop_accepted"?"Quán nhận đơn":status==="preparing"?"Quán bắt đầu chuẩn bị":"Quán đã sẵn sàng cho tài xế";
- const {error}=await db.rpc("merchant_transition_order",{p_order_id:id,p_next_status:status,p_note:note});
- if(error){alert(error.message);return}
+ const r=await db.rpc("merchant_transition_order",{p_order_id:id,p_next_status:status,p_note:note});
+ if(r.error){alert("Không thể đổi trạng thái: "+r.error.message);return}
  await load();
+ if(document.querySelector(".nago-bottom-nav button.active")?.dataset.navKey==="orders") await renderMerchantOrders("day");
 }
 function esc(v){return String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 start();
