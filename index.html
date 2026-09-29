@@ -221,11 +221,28 @@ async function deleteAddress(id){
   }
   await loadAddresses();toast('Đã xóa địa chỉ');
 }
-async function checkout(){if(!cart.length)return toast('Giỏ hàng đang trống');if(!currentUser){closeCart();showAuth();return}const shop=restaurants.find(r=>r.id===cart[0].shop_id);if(!shop)return toast('Không tìm thấy quán');const subtotal=cart.reduce((a,x)=>a+x.price*x.qty,0),fee=shop.delivery_fee||15000;await loadAddresses();
+async function checkout(){
+  if(!cart.length)return toast('Giỏ hàng đang trống');
+  if(!currentUser){closeCart();showAuth();return}
+  const shop=restaurants.find(r=>r.id===cart[0].shop_id);
+  if(!shop)return toast('Không tìm thấy quán');
+  await loadAddresses();
   const selected=userAddresses.find(a=>a.id===selectedAddressId)||userAddresses.find(a=>a.is_default)||userAddresses[0];
   if(!selected){closeCart();openAddressManager();return toast('Vui lòng thêm địa chỉ giao hàng trước khi đặt đơn')}
   selectedAddressId=selected.id;
-  const {data:order,error}=await nagoSupabase.from('orders').insert({user_id:currentUser.id,shop_id:shop.id,address_id:selected.id,subtotal,delivery_fee:fee,total:subtotal+fee,payment_method:'cod',payment_status:'unpaid'}).select().single();if(error){console.error(error);return toast('Không thể tạo đơn: '+error.message)}const items=cart.map(x=>({order_id:order.id,product_id:x.id,product_name:x.name,unit_price:x.price,quantity:x.qty}));const {error:itemError}=await nagoSupabase.from('order_items').insert(items);if(itemError){console.error(itemError);await nagoSupabase.from('orders').delete().eq('id',order.id).eq('user_id',currentUser.id);return toast('Không thể lưu món. Đơn chưa được xác nhận.')}const {error:historyError}=await nagoSupabase.from('order_status_history').insert({order_id:order.id,status:'pending',note:'Khách hàng tạo đơn • Thanh toán COD'});if(historyError){console.error(historyError)}cart=[];save();closeCart();await renderOrders();show('orders');toast('Đặt đơn COD thành công!')}
+  const payload=cart.map(x=>({product_id:x.id,quantity:x.qty}));
+  const {data:order,error}=await nagoSupabase.rpc('customer_create_cod_order',{
+    p_shop_id:shop.id,
+    p_address_id:selected.id,
+    p_items:payload,
+    p_note:null
+  });
+  if(error){
+    console.error(error);
+    return toast('Không thể tạo đơn: '+error.message);
+  }
+  cart=[];save();closeCart();await renderOrders();show('orders');toast('Đặt đơn COD thành công!');
+}
 function orderStatusLabel(status){
   return {pending:'Đã đặt',shop_accepted:'Quán đã nhận',preparing:'Đang chuẩn bị',ready_for_pickup:'Chờ tài xế',driver_assigned:'Đã có tài xế',picked_up:'Đã lấy hàng',delivering:'Đang giao',delivered:'Đã giao',cancelled:'Đã hủy',rejected:'Bị từ chối',refunded:'Đã hoàn tiền',failed:'Thất bại'}[status]||status;
 }
@@ -278,13 +295,8 @@ async function submitReview(orderId,type,targetId){
 async function cancelOrder(id){
   if(!currentUser)return;
   if(!confirm('Bạn chắc chắn muốn hủy đơn hàng này?'))return;
-  const {data:o,error:fetchError}=await nagoSupabase.from('orders').select('status').eq('id',id).eq('user_id',currentUser.id).single();
-  if(fetchError)return toast('Không tải được đơn hàng');
-  if(!['pending','shop_accepted'].includes(o.status))return toast('Đơn này không còn có thể hủy');
-  const {error}=await nagoSupabase.from('orders').update({status:'cancelled'}).eq('id',id).eq('user_id',currentUser.id);
+  const {error}=await nagoSupabase.rpc('customer_cancel_order',{p_order_id:id});
   if(error)return toast('Không thể hủy đơn: '+error.message);
-  const {error:historyError}=await nagoSupabase.from('order_status_history').insert({order_id:id,status:'cancelled',note:'Khách hàng hủy đơn'});
-  if(historyError)console.error(historyError);
   closeOrderDetail();await renderOrders();toast('Đã hủy đơn hàng');
 }
 async function renderOrders(){
