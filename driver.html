@@ -91,8 +91,18 @@ function card(o,canClaim){
  if(o.status==="picked_up")action='<button class="btn" onclick="move(\''+o.id+'\',\'delivering\')">Bắt đầu giao</button>';
  if(o.status==="delivering")action='<button class="btn" onclick="move(\''+o.id+'\',\'delivered\')">Đã giao</button>';
  if(o.status==="delivered"&&o.payment_method==="cod"&&o.payment_status!=="paid")action+='<button class="btn orange" onclick="collectCod(\''+o.id+'\')">💵 Xác nhận đã thu COD</button>';
- return '<div class="card"><div class="row"><div><b>Đơn #'+o.id.slice(0,8)+'</b><div class="muted">'+esc(o.shop_name)+'</div></div><span class="pill '+driverStatusPill(o.status,o.payment_status)+'">'+(labels[o.status]||o.status)+'</span></div><div class="row"><b>Tổng: '+money(o.total)+'</b><span class="muted">'+(o.payment_method==="cod"?"COD":"Điện tử")+(o.payment_method==="cod"?" · "+(o.payment_status==="paid"?"Đã thu COD":"Chưa thu COD"):"")+'</span></div><div class="actions"><button class="detail-btn" onclick="openOrderDetail(\''+o.id+'\')">👁 Xem chi tiết</button>'+action+'</div></div>';
+ return '<div class="card"><div class="row"><div><b>Đơn #'+o.id.slice(0,8)+'</b><div class="muted">'+esc(o.shop_name)+'</div></div><span class="pill '+driverStatusPill(o.status,o.payment_status)+'">'+(labels[o.status]||o.status)+'</span></div><div class="row"><b>Tổng: '+money(o.total)+'</b><span class="muted">'+(o.payment_method==="cod"?"COD":"Điện tử")+(o.payment_method==="cod"?" · "+(o.payment_status==="paid"?"Đã thu COD":"Chưa thu COD"):"")+'</span></div><div class="actions"><button class="detail-btn" onclick="openOrderDetail(\''+o.id+'\')">👁 Xem chi tiết</button>'+driverRouteButtons(o)+action+'</div></div>';
 }
+function driverRouteButtons(o){
+ let h="";
+ if(o.status==="driver_assigned"||o.status==="picked_up"||o.status==="delivering"){
+  if(o.address_line)h+='<button class="btn gray" onclick="openMapsRoute(&quot;'+String(o.address_line).replace(/"/g,"&amp;quot;")+'&quot;)">🧭 Chỉ đường</button>';
+  if(o.recipient_phone)h+='<button class="btn gray" onclick="callNumber(&quot;'+String(o.recipient_phone).replace(/"/g,"&amp;quot;")+'&quot;)">📞 Gọi khách</button>';
+ }
+ return h;
+}
+function openMapsRoute(address){window.open("https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(address),"_blank","noopener")}
+function callNumber(phone){window.location.href="tel:"+phone.replace(/[^0-9+]/g,"")}
 function openOrderDetail(id){
  const o=(window.driverOrders||[]).find(x=>x.id===id); if(!o)return;
  document.getElementById("detailSubtitle").textContent="Đơn #"+o.id.slice(0,8)+" · "+new Date(o.created_at).toLocaleString("vi-VN");
