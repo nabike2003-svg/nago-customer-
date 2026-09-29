@@ -326,7 +326,17 @@ function updateAccount(){
   }
 }
 function render(){document.getElementById('restaurantList').innerHTML=restaurants.map(restaurantCard).join('');document.getElementById('homeRestaurants').innerHTML=restaurants.slice(0,2).map(restaurantCard).join('');updateCart();updateAccount()}
-(async()=>{const {data}=await nagoSupabase.auth.getSession();currentUser=data.session?.user||null;if(currentUser)await loadAddresses();await loadRestaurants();renderOrders();nagoSupabase.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;updateAccount();renderOrders()})})();
+let nagoRealtimeChannel=null;
+function startCustomerRealtime(){
+  if(nagoRealtimeChannel)nagoSupabase.removeChannel(nagoRealtimeChannel);
+  if(!currentUser)return;
+  nagoRealtimeChannel=nagoSupabase.channel('nago-customer-orders-'+currentUser.id)
+    .on('postgres_changes',{event:'*',schema:'public',table:'orders',filter:'user_id=eq.'+currentUser.id},payload=>{
+      renderOrders();
+      if(payload.eventType==='UPDATE')toast('Đơn hàng vừa được cập nhật: '+orderStatusLabel(payload.new.status));
+    }).subscribe();
+}
+(async()=>{const {data}=await nagoSupabase.auth.getSession();currentUser=data.session?.user||null;if(currentUser)await loadAddresses();await loadRestaurants();renderOrders();startCustomerRealtime();nagoSupabase.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;updateAccount();renderOrders();startCustomerRealtime()})})();
 
 </script>
 </body>
