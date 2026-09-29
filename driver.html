@@ -99,6 +99,8 @@ function driverRouteButtons(o){
   if(o.delivery_latitude&&o.delivery_longitude)h+='<button class="btn gray" onclick="openMapsRoute(\''+o.delivery_latitude+','+o.delivery_longitude+'\')">🧭 Chỉ đường</button>';
   else if(o.address_line)h+='<button class="btn gray" onclick="openMapsRoute(\''+String(o.address_line).replace(/'/g,"")+'\')">🧭 Chỉ đường</button>';
   if(o.recipient_phone)h+='<button class="btn gray" onclick="callNumber(\''+String(o.recipient_phone).replace(/'/g,"")+'\')">📞 Gọi khách</button>';
+  if(o.shop_latitude&&o.shop_longitude)h+='<button class="btn gray" onclick="openMapsRoute(\''+o.shop_latitude+','+o.shop_longitude+'\')">🏪 Chỉ đường tới quán</button>';
+  else if(o.shop_address)h+='<button class="btn gray" onclick="openMapsRoute(\''+String(o.shop_address).replace(/'/g,"")+'\')">🏪 Đường tới quán</button>';
  }
  return h;
 }
