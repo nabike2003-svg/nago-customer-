@@ -93,16 +93,21 @@ async function enter(){
  document.getElementById('loginBox').classList.add('hidden');document.getElementById('app').classList.remove('hidden');document.getElementById('logout').classList.remove('hidden');await loadAll();
 }
 async function loadAll(){
- const [d,u,s,o,dr]=await Promise.all([nagoSupabase.rpc('admin_dashboard'),nagoSupabase.rpc('admin_list_users'),nagoSupabase.rpc('admin_list_shops'),nagoSupabase.rpc('admin_list_orders'),nagoSupabase.rpc('admin_list_approved_drivers')]);
- if(d.error||u.error||s.error||o.error||dr.error){note((d.error||u.error||s.error||o.error||dr.error).message,true);return}
- users=u.data||[];shops=s.data||[];orders=o.data||[];drivers=dr.data||[];renderStats(d.data||{});renderUsers();renderShops();renderOrders();
+ const [d,u,s,o,dr,a]=await Promise.all([nagoSupabase.rpc('admin_dashboard'),nagoSupabase.rpc('admin_list_users'),nagoSupabase.rpc('admin_list_shops'),nagoSupabase.rpc('admin_list_orders'),nagoSupabase.rpc('admin_list_approved_drivers'),nagoSupabase.rpc('admin_analytics')]);
+ if(d.error||u.error||s.error||o.error||dr.error||a.error){note((d.error||u.error||s.error||o.error||dr.error||a.error).message,true);return}
+ users=u.data||[];shops=s.data||[];orders=o.data||[];drivers=dr.data||[];renderStats(d.data||{},a.data?.[0]||{});renderUsers();renderShops();renderOrders();
 }
-function renderStats(x){
- const delivered=orders.filter(o=>o.status==='delivered');
- const active=orders.filter(o=>['pending','shop_accepted','preparing','ready_for_pickup','driver_assigned','picked_up','delivering'].includes(o.status));
- const revenue=delivered.reduce((s,o)=>s+(Number(o.total)||0),0);
- const a=[['Người dùng',x.users],['Merchant',x.merchants],['Driver',x.drivers],['Đã duyệt tài xế',x.approved_drivers],['Cửa hàng',x.shops],['Shop đang bật',x.active_shops],['Tổng đơn',x.orders],['Đơn chờ xử lý',x.pending_orders],['Đang xử lý',active.length],['Đã giao',delivered.length],['Doanh thu đơn đã giao',money(revenue)]];
- document.getElementById('stats').innerHTML=a.map(([k,v])=>'<div class="stat"><div class="muted">'+k+'</div><strong>'+((typeof v==='number')?Number(v||0):esc(v))+'</strong></div>').join('')
+function renderStats(x,a){
+ const data=a||{};
+ const cards=[
+ ['Người dùng',data.total_users??x.users],['Customer',data.customers??'—'],['Merchant',data.merchants??x.merchants],
+ ['Driver',data.drivers??x.drivers],['Đã duyệt tài xế',data.approved_drivers??x.approved_drivers],
+ ['Cửa hàng',data.shops??x.shops],['Shop đang bật',data.active_shops??x.active_shops],
+ ['Tổng đơn',data.total_orders??x.orders],['Đơn mới',data.pending_orders??x.pending_orders],
+ ['Đang xử lý',data.active_orders??'—'],['Đã giao',data.delivered_orders??'—'],['Đơn hủy',data.cancelled_orders??'—'],
+ ['GMV đã giao',money(data.gmv_delivered??0)],['GMV hợp lệ',money(data.gmv_valid??0)]
+ ];
+ document.getElementById('stats').innerHTML=cards.map(([k,v])=>'<div class="stat"><div class="muted">'+k+'</div><strong>'+((typeof v==='number')?Number(v||0):esc(v))+'</strong></div>').join('');
 }
 async function createStaff(){
  const name=document.getElementById('staffName').value.trim();
