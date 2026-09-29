@@ -202,10 +202,10 @@ function filterOrders(status){
  if(!arr.length){list.innerHTML='<div class="card"><b>Không có đơn ở trạng thái này.</b><p class="muted">Đơn mới sẽ xuất hiện tự động.</p></div>';return}
  list.innerHTML=arr.map(o=>{
   const buttons=[];
-  if(o.status==="pending")buttons.push('<button class="btn" onclick="move(\\''+o.id+'\\',\\'shop_accepted\\')">✓ Nhận đơn</button>','<button class="btn red" onclick="move(\\''+o.id+'\\',\\'rejected\\')">Từ chối</button>');
-  if(o.status==="shop_accepted")buttons.push('<button class="btn" onclick="move(\\''+o.id+'\\',\\'preparing\\')">🍳 Bắt đầu chuẩn bị</button>');
-  if(o.status==="preparing")buttons.push('<button class="btn" onclick="move(\\''+o.id+'\\',\\'ready_for_pickup\\')">🛵 Sẵn sàng cho tài xế</button>');
-  return '<div class="card order"><div class="orderhead"><div><b>Đơn #'+o.id.slice(0,8)+'</b><div class="muted">'+new Date(o.created_at).toLocaleString("vi-VN")+'</div></div><span class="pill">'+(labels[o.status]||o.status)+'</span></div><div class="row"><b>Tổng '+money(o.total)+'</b><span class="muted">'+(o.payment_method==="cod"?"COD":"Điện tử")+" · "+(o.payment_status==="paid"?"Đã thanh toán":"Chưa thanh toán")+'</span></div><div class="actions"><button class="detail-btn" onclick="openOrderDetail(\\''+o.id+'\\')">👁 Xem chi tiết</button>'+buttons.join("")+'</div></div>';
+  if(o.status==="pending")buttons.push('<button class="btn" onclick="move(\''+o.id+'\',\'shop_accepted\')">✓ Nhận đơn</button>','<button class="btn red" onclick="move(\''+o.id+'\',\'rejected\')">Từ chối</button>');
+  if(o.status==="shop_accepted")buttons.push('<button class="btn" onclick="move(\''+o.id+'\',\'preparing\')">🍳 Bắt đầu chuẩn bị</button>');
+  if(o.status==="preparing")buttons.push('<button class="btn" onclick="move(\''+o.id+'\',\'ready_for_pickup\')">🛵 Sẵn sàng cho tài xế</button>');
+  return '<div class="card order"><div class="orderhead"><div><b>Đơn #'+o.id.slice(0,8)+'</b><div class="muted">'+new Date(o.created_at).toLocaleString("vi-VN")+'</div></div><span class="pill">'+(labels[o.status]||o.status)+'</span></div><div class="row"><b>Tổng '+money(o.total)+'</b><span class="muted">'+(o.payment_method==="cod"?"COD":"Điện tử")+" · "+(o.payment_status==="paid"?"Đã thanh toán":"Chưa thanh toán")+'</span></div><div class="actions"><button class="detail-btn" onclick="openOrderDetail(\''+o.id+'\')">👁 Xem chi tiết</button>'+buttons.join("")+'</div></div>';
  }).join("");
 }
 function openOrderDetail(id){
@@ -217,9 +217,9 @@ function openOrderDetail(id){
 }
 function buttonsForMerchantDetail(o){
  const b=[];
- if(o.status==="pending")b.push('<button class="btn" onclick="moveAndClose(\\''+o.id+'\\',\\'shop_accepted\\')">✓ Nhận đơn</button>','<button class="btn red" onclick="moveAndClose(\\''+o.id+'\\',\\'rejected\\')">Từ chối</button>');
- if(o.status==="shop_accepted")b.push('<button class="btn" onclick="moveAndClose(\\''+o.id+'\\',\\'preparing\\')">🍳 Bắt đầu chuẩn bị</button>');
- if(o.status==="preparing")b.push('<button class="btn" onclick="moveAndClose(\\''+o.id+'\\',\\'ready_for_pickup\\')">🛵 Sẵn sàng cho tài xế</button>');
+ if(o.status==="pending")b.push('<button class="btn" onclick="moveAndClose(\''+o.id+'\',\'shop_accepted\')">✓ Nhận đơn</button>','<button class="btn red" onclick="moveAndClose(\''+o.id+'\',\'rejected\')">Từ chối</button>');
+ if(o.status==="shop_accepted")b.push('<button class="btn" onclick="moveAndClose(\''+o.id+'\',\'preparing\')">🍳 Bắt đầu chuẩn bị</button>');
+ if(o.status==="preparing")b.push('<button class="btn" onclick="moveAndClose(\''+o.id+'\',\'ready_for_pickup\')">🛵 Sẵn sàng cho tài xế</button>');
  return b.join("");
 }
 async function moveAndClose(id,status){closeOrderDetail();await move(id,status)}
