@@ -24,9 +24,23 @@ function startDriverRealtime(){
      if(status==="ready_for_pickup"||payload.new?.driver_id===user?.id||payload.old?.driver_id===user?.id)load();
    }).subscribe();
 }
-async function start(){const s=await db.auth.getSession();user=s.data.session?.user||null;if(!user)return login();await profile();startDriverRealtime();await load()}
+async function start(){
+ const s=await db.auth.getSession();user=s.data.session?.user||null;
+ if(!user)return login();
+ await checkRoleAndLoad();
+ db.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;if(!user){login()}else{checkRoleAndLoad()}});
+}
+async function checkRoleAndLoad(){
+ const {data:roleRow,error}=await db.from("profiles").select("role").eq("id",user.id).maybeSingle();
+ if(error){app.innerHTML='<div class="card"><b>Không kiểm tra được quyền Driver.</b><p class="muted">'+esc(error.message)+'</p></div>';return}
+ if(roleRow?.role!=="driver"){
+   app.innerHTML='<div class="card"><h2>Tài khoản chưa có quyền Driver</h2><p class="muted">Hãy đăng xuất và dùng tài khoản Driver do Admin tạo.</p><button class="btn gray" onclick="logout()">Đăng xuất</button></div>';
+   return;
+ }
+ await profile();startDriverRealtime();await load();
+}
 function login(){app.innerHTML='<div class="card"><h2>Đăng nhập tài xế</h2><input id="email" type="email" placeholder="Email"><input id="pass" type="password" placeholder="Mật khẩu"><button class="btn" onclick="signin()">Đăng nhập</button></div>'}
-async function signin(){const {data,error}=await db.auth.signInWithPassword({email:email.value.trim(),password:pass.value});if(error)return alert(error.message);user=data.user;await profile();await load()}
+async function signin(){const {data,error}=await db.auth.signInWithPassword({email:document.getElementById("email").value.trim(),password:document.getElementById("pass").value});if(error)return alert(error.message);user=data.user;await checkRoleAndLoad()}
 async function profile(){
  let {data}=await db.from("driver_profiles").select("*").eq("id",user.id).maybeSingle();
  if(!data){const r=await db.from("driver_profiles").insert({id:user.id,full_name:user.user_metadata?.full_name||"",phone:user.user_metadata?.phone||""}).select().single();if(r.error)return alert(r.error.message);data=r.data}
