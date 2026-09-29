@@ -30,14 +30,24 @@ const money=n=>new Intl.NumberFormat("vi-VN").format(Number(n)||0)+"đ";
 async function start(){
  const s=await db.auth.getSession(); user=s.data.session?.user||null;
  if(!user){login();return}
+ await checkRoleAndLoad();
+ db.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;if(!user){login()}else{checkRoleAndLoad()}});
+}
+async function checkRoleAndLoad(){
+ const {data:profile,error}=await db.from("profiles").select("role,full_name").eq("id",user.id).maybeSingle();
+ if(error){app.innerHTML='<div class="card"><b>Không kiểm tra được quyền.</b><p class="muted">'+esc(error.message)+'</p></div>';return}
+ if(profile?.role!=="merchant"){
+   app.innerHTML='<div class="card"><h2>Tài khoản chưa có quyền Merchant</h2><p class="muted">Tài khoản hiện tại chưa được cấp role Merchant. Hãy đăng xuất và dùng tài khoản Merchant do Admin tạo.</p><button class="btn gray" onclick="logout()">Đăng xuất</button></div>';
+   return;
+ }
  await load();
 }
 function login(){
  app.innerHTML='<div class="card"><h2>Đăng nhập Merchant</h2><input id="email" type="email" placeholder="Email"><input id="pass" type="password" placeholder="Mật khẩu"><button class="btn" onclick="signin()">Đăng nhập</button><div class="muted">Tài khoản phải được gán owner_id cho shop.</div></div>';
 }
 async function signin(){
- const {data,error}=await db.auth.signInWithPassword({email:email.value.trim(),password:pass.value});
- if(error){alert(error.message);return} user=data.user; await load();
+ const {data,error}=await db.auth.signInWithPassword({email:document.getElementById('email').value.trim(),password:document.getElementById('pass').value});
+ if(error){alert(error.message);return} user=data.user; await checkRoleAndLoad();
 }
 async function logout(){await db.auth.signOut();user=null;login()}
 async function load(){
