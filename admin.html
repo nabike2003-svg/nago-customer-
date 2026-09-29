@@ -47,6 +47,7 @@ function adminHardLogout(){
 <div id="usersPanel" class="panel"></div>
 <div id="shopsPanel" class="panel hidden"></div><div id="ordersPanel" class="panel hidden"></div>
 </section>
+<div id="orderModal" class="modal" onclick="if(event.target===this)closeOrderDetail()"><div class="modal-card"><div class="modal-head"><div><b>Chi tiết đơn hàng</b><div id="detailSubtitle" class="muted"></div></div><button class="close" onclick="closeOrderDetail()">✕</button></div><div id="orderDetail" style="margin-top:14px"></div></div></div>
 </main>
 <script>
 const SUPABASE_URL="https://rnyymflpnidkgetmdwwx.supabase.co";
@@ -158,7 +159,7 @@ function renderOrders(){
  el.innerHTML='<details class="section" open><summary>📦 Điều hành đơn hàng <span class="section-note">'+orders.length+' đơn gần nhất</span></summary><div class="section-body"><div class="topline"><h2>Điều hành đơn hàng</h2><span class="muted">'+orders.length+' đơn gần nhất</span></div><div class="tablewrap"><div class="row head"><div>Đơn hàng</div><div>Khách / Shop</div><div>Trạng thái</div><div>Tài xế</div><div>Thao tác</div></div>'+orders.map(o=>{
  const can=['ready_for_pickup','driver_assigned'].includes(o.status);
  const opts=drivers.map(d=>'<option value="'+d.id+'" '+(o.driver_id===d.id?'selected':'')+'>'+esc(d.full_name||d.phone||d.id)+(d.is_online?' • Online':' • Offline')+'</option>').join('');
- return '<div class="row"><div><b>#'+esc(o.id.slice(0,8))+'</b><div class="muted">'+new Date(o.created_at).toLocaleString('vi-VN')+'</div><div>'+money(o.total)+'</div></div><div><b>'+esc(o.customer_name||o.customer_email||'Khách')+'</b><div class="muted">'+esc(o.shop_name||'')+'</div></div><div><span class="badge '+(['delivered'].includes(o.status)?'ok':(['cancelled','rejected','failed'].includes(o.status)?'off':'warn'))+'">'+esc(o.status)+'</span><div class="muted">'+esc(o.payment_method||'')+' • '+esc(o.payment_status||'')+'</div></div><div>'+esc(o.driver_name||'Chưa có')+(o.driver_email?'<div class="muted">'+esc(o.driver_email)+'</div>':'')+'</div><div class="actions"><button class="detail-btn" onclick="openOrderDetail(\\''+o.id+'\\')">👁 Chi tiết</button>'+(can?'<select onchange="assignDriver(\\''+o.id+'\\',this.value)"><option value="">Chọn tài xế</option>'+opts+'</select>':'')+'</div></div>'
+ return '<div class="row"><div><b>#'+esc(o.id.slice(0,8))+'</b><div class="muted">'+new Date(o.created_at).toLocaleString('vi-VN')+'</div><div>'+money(o.total)+'</div></div><div><b>'+esc(o.customer_name||o.customer_email||'Khách')+'</b><div class="muted">'+esc(o.shop_name||'')+'</div></div><div><span class="badge '+(['delivered'].includes(o.status)?'ok':(['cancelled','rejected','failed'].includes(o.status)?'off':'warn'))+'">'+esc(o.status)+'</span><div class="muted">'+esc(o.payment_method||'')+' • '+esc(o.payment_status||'')+'</div></div><div>'+esc(o.driver_name||'Chưa có')+(o.driver_email?'<div class="muted">'+esc(o.driver_email)+'</div>':'')+'</div><div class="actions"><button class="detail-btn" onclick="openOrderDetail(\''+o.id+'\')">👁 Chi tiết</button>'+(can?'<select onchange="assignDriver(\''+o.id+'\',this.value)"><option value="">Chọn tài xế</option>'+opts+'</select>':'')+'</div></div>'
  }).join('')+'</div></div></details>';
 }
 async function openOrderDetail(id){
