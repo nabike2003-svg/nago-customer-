@@ -200,6 +200,33 @@ html+='<details class="section"'+(attentionCount?' open':'')+'><summary>⚠️ C
 html+='<div class="layout"><aside><details class="section" open><summary>🏪 Cửa hàng của tôi</summary><div class="section-body">'+shops.map(s=>'<div class="shop active"><b>'+esc(s.name)+'</b><div class="muted">'+esc(s.address||"Chưa có địa chỉ")+'</div><div class="muted">'+(s.is_active?"● Đang hoạt động":"○ Tạm ngưng")+'</div></div>').join("")+'</div></details></aside><section><details class="section" open><summary>📦 Đơn hàng <span class="section-note">Chọn nhóm đơn cần xử lý</span></summary><div class="section-body"><div class="tabs"><button class="tab on" onclick="filterOrders(\'all\')">Tất cả</button><button class="tab" onclick="filterOrders(\'pending\')">Đơn mới</button><button class="tab" onclick="filterOrders(\'preparing\')">Đang làm</button><button class="tab" onclick="filterOrders(\'ready_for_pickup\')">Chờ tài xế</button><button class="tab" onclick="filterOrders(\'delivering\')">Đang giao</button><button class="tab" onclick="filterOrders(\'delivered\')">Đã giao</button><button class="tab" onclick="filterOrders(\'cancelled\')">Đã hủy</button><button class="tab" onclick="filterOrders(\'cod_unpaid\')">COD chưa thu</button></div><div id="orderList"></div></div></details></section></div>';
  app.innerHTML=html; window.merchantOrders=orders; filterOrders("all"); renderProductManager(); merchantAnalytics().then(a=>{const el=document.getElementById("analytics");if(!el||!a)return;el.innerHTML="<div class=\"stats\" style=\"margin-top:10px\"><div class=\"stat\"><div class=\"muted\">Tổng đơn</div><b>"+a.total_orders+"</b></div><div class=\"stat\"><div class=\"muted\">Đã giao</div><b>"+a.delivered_orders+"</b></div><div class=\"stat\"><div class=\"muted\">Đơn hủy</div><b>"+a.cancelled_orders+"</b></div><div class=\"stat\"><div class=\"muted\">Doanh thu đã giao</div><b>"+money(a.revenue_delivered)+"</b></div></div>";});
 }
+function renderProductManager(){
+ const el=document.getElementById("productManager"),sel=document.getElementById("productShop");if(!el||!sel)return;
+ const ps=window.merchantProducts||[];
+ sel.innerHTML=shops.map(s=>'<option value="'+s.id+'">'+esc(s.name)+'</option>').join("");
+ el.innerHTML=ps.length?ps.map(p=>'<div class="card" style="margin:8px 0"><div class="row"><div><b>'+esc(p.name)+'</b><div class="muted">'+money(p.price)+'</div></div><span class="pill">'+(p.is_available?"Đang bán":"Hết món")+'</span></div><div class="actions" style="margin-top:8px"><button class="btn gray" onclick="editProduct(\''+p.id+'\')">✏️ Sửa</button><button class="btn gray" onclick="toggleProduct(\''+p.id+'\','+(!p.is_available)+')">'+(p.is_available?"Tạm hết":"Bán lại")+'</button></div></div>').join(""):'<div class="muted">Chưa có món.</div>';
+}
+function editProduct(id){
+ const p=(window.merchantProducts||[]).find(x=>x.id===id);if(!p)return;
+ const name=prompt("Tên món",p.name);if(name===null)return;
+ const price=Number(prompt("Giá món",p.price));if(!Number.isFinite(price)||price<0)return alert("Giá không hợp lệ.");
+ updateProduct(id,name.trim(),price,p.is_available);
+}
+async function updateProduct(id,name,price,available){
+ const r=await db.rpc("merchant_manage_product",{p_product_id:id,p_name:name,p_price:price,p_is_available:available});
+ if(r.error)return alert(r.error.message);await load();
+}
+async function saveNewProduct(){
+ const shopId=document.getElementById("productShop").value,name=document.getElementById("productName").value.trim(),price=Number(document.getElementById("productPrice").value||0);
+ if(!shopId||!name||!Number.isFinite(price)||price<0)return alert("Vui lòng chọn cửa hàng, tên món và giá.");
+ const r=await db.rpc("merchant_manage_product",{p_shop_id:shopId,p_name:name,p_price:price,p_is_available:true});
+ if(r.error)return alert(r.error.message);
+ document.getElementById("productName").value="";document.getElementById("productPrice").value="";await load();
+}
+async function toggleProduct(id,available){
+ const r=await db.rpc("merchant_manage_product",{p_product_id:id,p_is_available:available});
+ if(r.error)return alert(r.error.message);await load();
+}
 function statusPill(status,payment){if(status==="delivered")return payment==="unpaid"?"orange":"green";if(["cancelled","rejected","failed"].includes(status))return "red";if(["driver_assigned","picked_up","delivering"].includes(status))return "purple";if(status==="ready_for_pickup")return "blue";return "orange"}
 function filterOrders(status){
  const list=document.getElementById("orderList"); if(!list)return;
