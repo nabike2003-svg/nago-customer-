@@ -69,15 +69,22 @@ function card(o,canClaim){
  if(o.status==="driver_assigned")action='<button class="btn" onclick="move(\''+o.id+'\',\'picked_up\')">Đã lấy hàng</button>';
  if(o.status==="picked_up")action='<button class="btn" onclick="move(\''+o.id+'\',\'delivering\')">Bắt đầu giao</button>';
  if(o.status==="delivering")action='<button class="btn" onclick="move(\''+o.id+'\',\'delivered\')">Đã giao</button>';
- return '<div class="card"><div class="row"><div><b>Đơn #'+o.id.slice(0,8)+'</b><div class="muted">'+esc(o.shop_name)+'</div></div><span class="pill">'+(labels[o.status]||o.status)+'</span></div><div class="items">'+(o.items||[]).map(i=>'<div class="item">'+esc(i.product_name)+' × '+i.quantity+' <b>'+money(i.line_total)+'</b></div>').join("")+'</div><p><b>Tổng: '+money(o.total)+'</b> · '+(o.payment_method==="cod"?"COD":"Điện tử")+'</p><div class="muted"><b>Giao tới:</b> '+esc(o.recipient_name||"")+' · '+esc(o.recipient_phone||"")+'<br>'+esc(o.address_line||"")+'</div>'+action+'</div>';
+ if(o.status==="delivered"&&o.payment_method==="cod"&&o.payment_status!=="paid")action+='<button class="btn orange" onclick="collectCod(\''+o.id+'\')">💵 Xác nhận đã thu COD</button>';
+ return '<div class="card"><div class="row"><div><b>Đơn #'+o.id.slice(0,8)+'</b><div class="muted">'+esc(o.shop_name)+'</div></div><span class="pill">'+(labels[o.status]||o.status)+'</span></div><div class="items">'+(o.items||[]).map(i=>'<div class="item">'+esc(i.product_name)+' × '+i.quantity+' <b>'+money(i.line_total)+'</b></div>').join("")+'</div><p><b>Tổng: '+money(o.total)+'</b> · '+(o.payment_method==="cod"?"COD":"Điện tử")+(o.payment_method==="cod"?" · "+(o.payment_status==="paid"?"Đã thu COD":"Chưa thu COD"):"")+'</p><div class="muted"><b>Giao tới:</b> '+esc(o.recipient_name||"")+' · '+esc(o.recipient_phone||"")+'<br>'+esc(o.address_line||"")+'</div>'+action+'</div>';
 }
 async function load(){
  if(!user)return;
  let all=[];
+ const historyResult=await db.rpc("driver_get_order_history");
+ if(historyResult.error){app.innerHTML='<div class="card"><b>Không tải được lịch sử đơn.</b><p class="muted">'+esc(historyResult.error.message)+'</p><button class="btn gray" onclick="logout()">Đăng xuất</button></div>';return}
+ all=historyResult.data||[];
  if(approved&&online){
    const {data,error}=await db.rpc("driver_get_orders");
    if(error){app.innerHTML='<div class="card"><b>Không tải được đơn.</b><p class="muted">'+esc(error.message)+'</p><button class="btn gray" onclick="logout()">Đăng xuất</button></div>';return}
-   all=data||[];
+   const feed=data||[];
+   const byId=new Map(all.map(o=>[o.id,o]));
+   feed.forEach(o=>byId.set(o.id,o));
+   all=[...byId.values()];
  }
  const mine=all.filter(o=>o.driver_id===user.id), waiting=all.filter(o=>o.status==="ready_for_pickup"&&!o.driver_id);
  const delivered=mine.filter(o=>o.status==="delivered");
@@ -87,6 +94,12 @@ async function load(){
  '<div class="card"><div class="statusbar"><div><b>Trạng thái nhận đơn</b><div class="muted">Driver phải được Admin duyệt mới có thể Online.</div></div><button class="btn '+(online?"orange":"")+'" onclick="toggleOnline()">'+(online?"Tắt Online":"Bật Online")+'</button></div></div>'+
  '<h2>Hồ sơ tài xế</h2><div class="card"><b>⭐ Điểm đánh giá: '+driverRating.toFixed(1)+' / 5</b><div class="muted">Điểm được tính từ các đánh giá của khách hàng sau khi đơn hoàn tất.</div></div><h2>Đơn hàng của tôi</h2>'+ (mine.length?mine.map(o=>card(o,false)).join(""):'<div class="card"><span class="muted">Chưa có đơn đang phụ trách.</span></div>')+
  '<h2>Đơn đang chờ tài xế</h2>'+ (approved&&online?(waiting.length?waiting.map(o=>card(o,true)).join(""):'<div class="card"><span class="muted">Hiện không có đơn chờ nhận.</span></div>'):'<div class="card"><span class="muted">Bật Online sau khi tài khoản được duyệt để nhận đơn.</span></div>');
+}
+async function collectCod(id){
+ if(!confirm('Xác nhận đã thu đủ tiền COD từ khách?'))return;
+ const {error}=await db.rpc("driver_confirm_cod_collection",{p_order_id:id,p_note:"Tài xế xác nhận đã thu tiền COD"});
+ if(error)return alert(error.message);
+ await load();
 }
 async function claim(id){const {error}=await db.rpc("driver_claim_order",{p_order_id:id});if(error)return alert(error.message);await load()}
 async function move(id,status){const notes={picked_up:"Tài xế đã lấy hàng",delivering:"Tài xế bắt đầu giao",delivered:"Tài xế xác nhận đã giao"};const {error}=await db.rpc("driver_transition_order",{p_order_id:id,p_next_status:status,p_note:notes[status]});if(error)return alert(error.message);await load()}
