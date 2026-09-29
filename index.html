@@ -233,6 +233,11 @@ async function deleteAddress(id){
 async function checkout(){
   if(!cart.length)return toast('Giỏ hàng đang trống');
   if(!currentUser){closeCart();showAuth();return}
+  if(!navigator.geolocation)return toast('Thiết bị không hỗ trợ vị trí. Không thể đặt hàng.');
+  const position=await new Promise(resolve=>navigator.geolocation.getCurrentPosition(resolve,()=>resolve(null),{enableHighAccuracy:true,timeout:12000,maximumAge:0}));
+  if(!position){
+    return toast('NaGo cần quyền vị trí để đặt hàng. Hãy cho phép truy cập vị trí rồi thử lại.');
+  }
   const shop=restaurants.find(r=>r.id===cart[0].shop_id);
   if(!shop)return toast('Không tìm thấy quán');
   await loadAddresses();
