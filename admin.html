@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NaGo Admin</title>
-<nav class="nago-bottom-nav" aria-label="Điều khiển nhanh"><button type="button" class="active" onclick="nagoBottomNav('home',this)"><b>⌂</b><span>Tổng quan</span></button><button type="button" class="" onclick="nagoBottomNav('users',this)"><b>♙</b><span>Người dùng</span></button><button type="button" class="" onclick="nagoBottomNav('shops',this)"><b>▣</b><span>Cửa hàng</span></button><button type="button" class="" onclick="nagoBottomNav('orders',this)"><b>▤</b><span>Đơn hàng</span></button></nav><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<nav class="nago-bottom-nav" aria-label="Điều khiển nhanh"><button type="button" data-nav-key="home" class="active" onclick="nagoBottomNav('home',this)"><b>⌂</b><span>Tổng quan</span></button><button type="button" data-nav-key="users" class="" onclick="nagoBottomNav('users',this)"><b>♙</b><span>Người dùng</span></button><button type="button" data-nav-key="shops" class="" onclick="nagoBottomNav('shops',this)"><b>▣</b><span>Cửa hàng</span></button><button type="button" data-nav-key="orders" class="" onclick="nagoBottomNav('orders',this)"><b>▤</b><span>Đơn hàng</span></button></nav><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--g:#00BFA6;--n:#102A43;--bg:#F7F9F8;--t:#263238;--m:#78909C;--o:#FF8A34;--r:#E5484D}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,"Be Vietnam Pro",sans-serif;color:var(--t)}
