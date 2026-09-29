@@ -249,7 +249,9 @@ async function checkout(){
     p_shop_id:shop.id,
     p_address_id:selected.id,
     p_items:payload,
-    p_note:note
+    p_note:note,
+    p_delivery_latitude:position.coords.latitude,
+    p_delivery_longitude:position.coords.longitude
   });
   if(error){
     console.error(error);
