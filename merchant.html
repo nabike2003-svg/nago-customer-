@@ -5,18 +5,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NaGo Merchant</title>
 <style>
-:root{--g:#00BFA6;--n:#102A43;--bg:#F7F9F8;--t:#263238;--m:#78909C;--red:#E5484D}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,"Be Vietnam Pro",sans-serif;color:var(--t)}
-header{background:var(--n);color:#fff;padding:18px 16px;position:sticky;top:0;z-index:2}main{max-width:760px;margin:auto;padding:16px}
-.card{background:#fff;border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 2px 10px #0000000b}
-h1{margin:0;font-size:22px}.muted{color:var(--m);font-size:13px}.btn{border:0;border-radius:10px;padding:11px 14px;font-weight:700;cursor:pointer;background:var(--g);color:#fff;margin:4px}.btn.red{background:var(--red)}.btn.gray{background:#e8eeee;color:var(--n)}
-.row{display:flex;justify-content:space-between;gap:10px;align-items:center}.items{margin:10px 0}.item{padding:7px 0;border-bottom:1px solid #edf1f0}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#e7f8f5;color:#087b6d;font-size:12px;font-weight:700}
-input{width:100%;padding:12px;border:1px solid #dbe4e2;border-radius:10px;margin:7px 0}
+:root{--g:#00BFA6;--n:#102A43;--bg:#F5F8F7;--t:#263238;--m:#78909C;--line:#E3EBE9;--red:#E5484D;--orange:#FF8A34}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,"Be Vietnam Pro",sans-serif;color:var(--t)}button,input{font:inherit}
+header{background:var(--n);color:#fff;position:sticky;top:0;z-index:10}.top{max-width:1100px;margin:auto;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:15px}.brand{display:flex;align-items:center;gap:10px}.logo{width:40px;height:40px;border-radius:13px;background:var(--g);display:grid;place-items:center;font-weight:900}.brand b{font-size:18px}.brand small{display:block;color:#b8c8d2;margin-top:3px}
+main{max-width:1100px;margin:auto;padding:20px 18px}.hero{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:18px}.hero h1{margin:0;color:var(--n);font-size:28px}.muted{color:var(--m);font-size:13px}
+.btn{border:0;border-radius:11px;padding:10px 14px;font-weight:700;cursor:pointer;background:var(--g);color:#fff}.btn.red{background:var(--red)}.btn.gray{background:#e8eeee;color:var(--n)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat,.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 4px 18px #00000008}.stat{padding:15px}.stat b{font-size:25px;color:var(--n);display:block;margin-top:6px}.layout{display:grid;grid-template-columns:270px 1fr;gap:16px;margin-top:16px}.card{padding:16px}.shop{padding:13px;border:1px solid var(--line);border-radius:12px;margin-top:9px}.shop.active{border-color:var(--g);background:#effbf9}.order{margin-bottom:12px}.orderhead{display:flex;justify-content:space-between;gap:10px}.pill{display:inline-block;padding:6px 9px;border-radius:999px;background:#e7f8f5;color:#087b6d;font-size:12px;font-weight:700;white-space:nowrap}.pill.orange{background:#fff2e9;color:#b95310}.pill.red{background:#fdecec;color:#b4232a}.items{margin:10px 0}.item{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #edf1f0}.customer{background:#f7faf9;border-radius:12px;padding:11px;margin:10px 0}.actions{display:flex;flex-wrap:wrap;gap:6px}.tabs{display:flex;gap:8px;margin:0 0 14px}.tab{border:0;background:#e8eeee;color:var(--n);padding:9px 13px;border-radius:10px;font-weight:700;cursor:pointer}.tab.on{background:var(--g);color:#fff}
+input{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;margin:7px 0}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}.hero{align-items:start;flex-direction:column}.top{padding:12px 14px}main{padding:15px}.orderhead{flex-direction:column}}
 </style>
 </head>
 <body>
-<header><div class="row"><div><h1>NaGo Merchant</h1><div class="muted" style="color:#c9d6df">Quản lý đơn hàng của quán</div></div><button class="btn gray" onclick="logout()">Đăng xuất</button></div></header>
-<main id="app"><div class="card"><b>Đang tải...</b></div></main>
+<header><div class="top"><div class="brand"><div class="logo">N</div><div><b>NaGo Merchant</b><small>Trung tâm quản lý quán</small></div></div><button class="btn gray" onclick="logout()">Đăng xuất</button></div></header>
+<main id="app"><div class="card"><b>Đang tải dữ liệu...</b></div></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const URL="https://rnyymflpnidkgetmdwwx.supabase.co";
@@ -24,7 +25,7 @@ const KEY="sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx";
 const db=window.supabase.createClient(URL,KEY);
 const app=document.getElementById("app");
 let user=null,shops=[],merchantRealtime=null;
-const labels={pending:"Đã đặt",shop_accepted:"Quán đã nhận",preparing:"Đang chuẩn bị",ready_for_pickup:"Chờ tài xế",rejected:"Đã từ chối",cancelled:"Đã hủy",delivering:"Đang giao",delivered:"Đã giao"};
+const labels={pending:"Đã đặt",shop_accepted:"Quán đã nhận",preparing:"Đang chuẩn bị",ready_for_pickup:"Chờ tài xế",driver_assigned:"Đã có tài xế",picked_up:"Đã lấy hàng",delivering:"Đang giao",delivered:"Đã giao",rejected:"Đã từ chối",cancelled:"Đã hủy"};
 const money=n=>new Intl.NumberFormat("vi-VN").format(Number(n)||0)+"đ";
 async function start(){
  const s=await db.auth.getSession(); user=s.data.session?.user||null;
@@ -55,20 +56,24 @@ async function load(){
  render(orders||[]);
 }
 function render(orders){
- let html=shops.map(s=>'<div class="card"><b>'+esc(s.name)+'</b><div class="muted">'+esc(s.address||"")+'</div></div>').join("");
- if(!orders.length)html+='<div class="card"><b>Chưa có đơn hàng</b></div>';
- for(const o of orders){
-  const buttons=[];
-  if(o.status==="pending"){buttons.push('<button class="btn" onclick="move(\''+o.id+'\',\'shop_accepted\')">Nhận đơn</button>','<button class="btn red" onclick="move(\''+o.id+'\',\'rejected\')">Từ chối</button>')}
-  if(o.status==="shop_accepted")buttons.push('<button class="btn" onclick="move(\''+o.id+'\',\'preparing\')">Bắt đầu chuẩn bị</button>');
-  if(o.status==="preparing")buttons.push('<button class="btn" onclick="move(\''+o.id+'\',\'ready_for_pickup\')">Sẵn sàng cho tài xế</button>');
-  const address=o.address||{};
-  html+='<div class="card"><div class="row"><div><b>Đơn #'+o.id.slice(0,8)+'</b><div class="muted">'+new Date(o.created_at).toLocaleString("vi-VN")+'</div></div><span class="pill">'+(labels[o.status]||o.status)+'</span></div>'+
-  '<div class="items">'+(o.items||[]).map(i=>'<div class="item">'+esc(i.product_name)+' × '+i.quantity+' <b>'+money(i.line_total)+'</b></div>').join("")+'</div>'+
-  '<div class="muted">Giao tới: '+esc(address.recipient_name||"")+' '+esc(address.phone||"")+'<br>'+esc(address.address_line||"")+'</div>'+
-  '<p><b>Tổng: '+money(o.total)+'</b> · '+(o.payment_method==="cod"?"COD":"Thanh toán điện tử")+' · '+(o.payment_status==="paid"?"Đã thanh toán":"Chưa thanh toán")+'</p>'+buttons.join("")+'</div>';
- }
- app.innerHTML=html;
+ const count=s=>orders.filter(o=>o.status===s).length;
+ const shopName=shops.length===1?esc(shops[0].name):shops.length+" cửa hàng";
+ let html='<div class="hero"><div><div class="muted">Xin chào</div><h1>'+shopName+'</h1><div class="muted">Theo dõi và xử lý đơn hàng theo thời gian thực.</div></div><button class="btn" onclick="load()">↻ Làm mới</button></div>';
+ html+='<div class="stats"><div class="stat">🆕<div class="muted">Đơn mới</div><b>'+count("pending")+'</b></div><div class="stat">🍳<div class="muted">Đang chuẩn bị</div><b>'+count("preparing")+'</b></div><div class="stat">🛵<div class="muted">Chờ tài xế</div><b>'+count("ready_for_pickup")+'</b></div><div class="stat">✓<div class="muted">Đã giao</div><b>'+count("delivered")+'</b></div></div>';
+ html+='<div class="layout"><aside><div class="card"><b>Cửa hàng của tôi</b>'+shops.map(s=>'<div class="shop active"><b>'+esc(s.name)+'</b><div class="muted">'+esc(s.address||"Chưa có địa chỉ")+'</div><div class="muted">'+(s.is_active?"● Đang hoạt động":"○ Tạm ngưng")+'</div></div>').join("")+'</div></aside><section><div class="tabs"><button class="tab on" onclick="filterOrders(\'all\')">Tất cả</button><button class="tab" onclick="filterOrders(\'pending\')">Đơn mới</button><button class="tab" onclick="filterOrders(\'preparing\')">Đang làm</button><button class="tab" onclick="filterOrders(\'ready_for_pickup\')">Chờ tài xế</button></div><div id="orderList"></div></section></div>';
+ app.innerHTML=html; window.merchantOrders=orders; filterOrders("all");
+}
+function filterOrders(status){
+ const list=document.getElementById("orderList"); if(!list)return;
+ const orders=window.merchantOrders||[]; const arr=status==="all"?orders:orders.filter(o=>o.status===status);
+ if(!arr.length){list.innerHTML='<div class="card"><b>Không có đơn ở trạng thái này.</b><p class="muted">Đơn mới sẽ xuất hiện tự động.</p></div>';return}
+ list.innerHTML=arr.map(o=>{
+  const a=o.address||{}; const buttons=[];
+  if(o.status==="pending")buttons.push('<button class="btn" onclick="move(\''+o.id+'\',\'shop_accepted\')">✓ Nhận đơn</button>','<button class="btn red" onclick="move(\''+o.id+'\',\'rejected\')">Từ chối</button>');
+  if(o.status==="shop_accepted")buttons.push('<button class="btn" onclick="move(\''+o.id+'\',\'preparing\')">🍳 Bắt đầu chuẩn bị</button>');
+  if(o.status==="preparing")buttons.push('<button class="btn" onclick="move(\''+o.id+'\',\'ready_for_pickup\')">🛵 Sẵn sàng cho tài xế</button>');
+  return '<div class="card order"><div class="orderhead"><div><b>Đơn #'+o.id.slice(0,8)+'</b><div class="muted">'+new Date(o.created_at).toLocaleString("vi-VN")+'</div></div><span class="pill">'+(labels[o.status]||o.status)+'</span></div><div class="items">'+(o.items||[]).map(i=>'<div class="item"><span>'+esc(i.product_name)+' × '+i.quantity+'</span><b>'+money(i.line_total)+'</b></div>').join("")+'</div><div class="customer"><b>📍 '+esc(a.recipient_name||"Khách hàng")+'</b><br><span class="muted">'+esc(a.phone||"")+'<br>'+esc(a.address_line||"Chưa có địa chỉ")+'</span></div><div class="row"><b>Tổng '+money(o.total)+'</b><span class="muted">'+(o.payment_method==="cod"?"COD":"Điện tử")+" · "+(o.payment_status==="paid"?"Đã thanh toán":"Chưa thanh toán")+'</span></div><div class="actions">'+buttons.join("")+'</div></div>';
+ }).join("");
 }
 async function move(id,status){
  const note=status==="rejected"?"Quán từ chối đơn":status==="shop_accepted"?"Quán nhận đơn":status==="preparing"?"Quán bắt đầu chuẩn bị":"Quán đã sẵn sàng cho tài xế";
