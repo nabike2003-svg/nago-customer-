@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NaGo Driver</title>
+<style>
+:root{--g:#00BFA6;--n:#102A43;--bg:#F7F9F8;--t:#263238;--m:#78909C;--b:#e2eae8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,"Be Vietnam Pro",sans-serif;color:var(--t)}
+header{background:var(--n);color:white;padding:18px 16px;position:sticky;top:0;z-index:2}.wrap{max-width:760px;margin:auto;padding:16px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.card{background:#fff;border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 2px 10px #0000000b}
+h1{font-size:22px;margin:0}.muted{color:var(--m);font-size:13px}.btn{border:0;border-radius:10px;padding:11px 14px;background:var(--g);color:white;font-weight:700;margin:4px;cursor:pointer}.btn.gray{background:#e7eeee;color:var(--n)}.pill{padding:5px 9px;border-radius:999px;background:#e7f8f5;color:#087b6d;font-size:12px;font-weight:700}.item{padding:7px 0;border-bottom:1px solid var(--b)}
+input,select{width:100%;padding:12px;border:1px solid var(--b);border-radius:10px;margin:7px 0}
+</style></head><body>
+<header><div class="wrap" style="padding:0"><div class="row"><div><h1>NaGo Driver</h1><div id="sub" class="muted" style="color:#c9d6df">Nhận và giao đơn</div></div><button class="btn gray" onclick="logout()">Đăng xuất</button></div></div></header>
+<main class="wrap" id="app"><div class="card">Đang tải...</div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const db=window.supabase.createClient("https://rnyymflpnidkgetmdwwx.supabase.co","sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx");
+let user=null,online=false;const app=document.getElementById("app");
+const labels={ready_for_pickup:"Chờ tài xế",driver_assigned:"Đã nhận đơn",picked_up:"Đã lấy hàng",delivering:"Đang giao",delivered:"Đã giao"};
+const money=n=>new Intl.NumberFormat("vi-VN").format(Number(n)||0)+"đ";
+async function start(){const s=await db.auth.getSession();user=s.data.session?.user||null;if(!user)return login();await profile();await load()}
+function login(){app.innerHTML='<div class="card"><h2>Đăng nhập tài xế</h2><input id="email" type="email" placeholder="Email"><input id="pass" type="password" placeholder="Mật khẩu"><button class="btn" onclick="signin()">Đăng nhập</button></div>'}
+async function signin(){const {data,error}=await db.auth.signInWithPassword({email:email.value.trim(),password:pass.value});if(error)return alert(error.message);user=data.user;await profile();await load()}
+async function profile(){
+ let {data}=await db.from("driver_profiles").select("*").eq("id",user.id).maybeSingle();
+ if(!data){const r=await db.from("driver_profiles").insert({id:user.id,full_name:user.user_metadata?.full_name||"",phone:user.user_metadata?.phone||""}).select().single();if(r.error)return alert(r.error.message);data=r.data}
+ online=!!data.is_online;document.getElementById("sub").textContent=online?"🟢 Đang online":"⚪ Đang offline";
+}
+async function toggleOnline(){const {error}=await db.from("driver_profiles").update({is_online:!online,updated_at:new Date().toISOString()}).eq("id",user.id);if(error)return alert(error.message);online=!online;await profile();await load()}
+async function load(){const {data,error}=await db.rpc("driver_get_orders");if(error){app.innerHTML='<div class="card">Không tải được đơn: '+esc(error.message)+'</div>';return}const orders=Array.isArray(data)?data:[];render(orders)}
+function render(orders){
+ let h='<div class="card"><div class="row"><div><b>Trạng thái nhận đơn</b><div class="muted">'+(online?"Bạn đang nhận đơn mới":"Bật online để nhận đơn")+'</div></div><button class="btn '+(online?"gray":"")+'" onclick="toggleOnline()">'+(online?"Tắt online":"Bật online")+'</button></div></div>';
+ const available=orders.filter(o=>o.status==="ready_for_pickup"&&!o.driver_id);
+ const mine=orders.filter(o=>o.driver_id===user.id);
+ if(online&&available.length)h+='<h3>Đơn đang chờ tài xế</h3>'+available.map(o=>card(o,true)).join("");
+ if(mine.length)h+='<h3>Đơn của tôi</h3>'+mine.map(o=>card(o,false)).join("");
+ if(!available.length&&!mine.length)h+='<div class="card"><b>Chưa có đơn phù hợp.</b><p class="muted">Khi quán sẵn sàng, đơn sẽ xuất hiện tại đây.</p></div>';
+ app.innerHTML=h;
+}
+function card(o,canClaim){
+ let action="";
+ if(canClaim)action='<button class="btn" onclick="claim(\''+o.id+'\')">Nhận đơn</button>';
+ if(o.status==="driver_assigned")action='<button class="btn" onclick="move(\''+o.id+'\',\'picked_up\')">Đã lấy hàng</button>';
+ if(o.status==="picked_up")action='<button class="btn" onclick="move(\''+o.id+'\',\'delivering\')">Bắt đầu giao</button>';
+ if(o.status==="delivering")action='<button class="btn" onclick="move(\''+o.id+'\',\'delivered\')">Đã giao</button>';
+ return '<div class="card"><div class="row"><div><b>Đơn #'+o.id.slice(0,8)+'</b><div class="muted">'+esc(o.shop_name)+'</div></div><span class="pill">'+(labels[o.status]||o.status)+'</span></div><div class="items">'+(o.items||[]).map(i=>'<div class="item">'+esc(i.product_name)+' × '+i.quantity+' <b>'+money(i.line_total)+'</b></div>').join("")+'</div><p><b>Tổng: '+money(o.total)+'</b> · '+(o.payment_method==="cod"?"COD":"Điện tử")+'</p><div class="muted"><b>Giao tới:</b> '+esc(o.recipient_name||"")+' · '+esc(o.recipient_phone||"")+'<br>'+esc(o.address_line||"")+'</div>'+action+'</div>';
+}
+async function claim(id){const {error}=await db.rpc("driver_claim_order",{p_order_id:id});if(error)return alert(error.message);await load()}
+async function move(id,status){const notes={picked_up:"Tài xế đã lấy hàng",delivering:"Tài xế bắt đầu giao",delivered:"Tài xế xác nhận đã giao"};const {error}=await db.rpc("driver_transition_order",{p_order_id:id,p_next_status:status,p_note:notes[status]});if(error)return alert(error.message);await load()}
+async function logout(){await db.auth.signOut();user=null;login()}
+function esc(v){return String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+start();
+</script></body></html>
