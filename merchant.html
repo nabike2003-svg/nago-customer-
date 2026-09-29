@@ -210,7 +210,7 @@ async function merchantLoadRange(range){
  const {data,error}=await db.from("orders").select("id,shop_id,status,subtotal,delivery_fee,discount,total,payment_method,payment_status,created_at,address:user_addresses(label,recipient_name,phone,address_line),items:order_items(product_name,quantity,unit_price,line_total)").in("shop_id",ids).gte("created_at",start.toISOString()).order("created_at",{ascending:false}).limit(5000);
  if(error){alert(error.message);return []} return data||[];
 }
-async async function renderMerchantOrders(range="day"){
+async function renderMerchantOrders(range="day"){
  const orders=await merchantLoadRange(range);
  const by=orders.filter(o=>true);
  merchantRenderShell("Đơn hàng",'<div class="tabs"><button class="tab '+(range==="day"?"on":"")+'" onclick="renderMerchantOrders(\'day\')">Hôm nay</button><button class="tab '+(range==="month"?"on":"")+'" onclick="renderMerchantOrders(\'month\')">Tháng này</button><button class="tab '+(range==="year"?"on":"")+'" onclick="renderMerchantOrders(\'year\')">Năm nay</button></div><div class="card"><b>'+by.length+' đơn</b></div><div id="merchantOrderList" style="margin-top:10px"></div>');
