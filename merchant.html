@@ -24,46 +24,124 @@ const URL="https://rnyymflpnidkgetmdwwx.supabase.co";
 const KEY="sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx";
 const db=window.supabase.createClient(URL,KEY,{auth:{storageKey:"nago_merchant_auth",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const app=document.getElementById("app");
-let user=null,shops=[],merchantRealtime=null;
+let user=null,shops=[],merchantRealtime=null,authListener=null;
+const MERCHANT_STORAGE_KEY="nago_merchant_auth";
 const labels={pending:"Đã đặt",shop_accepted:"Quán đã nhận",preparing:"Đang chuẩn bị",ready_for_pickup:"Chờ tài xế",driver_assigned:"Đã có tài xế",picked_up:"Đã lấy hàng",delivering:"Đang giao",delivered:"Đã giao",rejected:"Đã từ chối",cancelled:"Đã hủy"};
 const money=n=>new Intl.NumberFormat("vi-VN").format(Number(n)||0)+"đ";
+
+function withTimeout(promise,ms,label){
+ return Promise.race([
+   promise,
+   new Promise((_,reject)=>setTimeout(()=>reject(new Error(label||"TIMEOUT")),ms))
+ ]);
+}
+function showLoadError(message){
+ app.innerHTML='<div class="card"><b>NaGo Merchant đang gặp lỗi tải dữ liệu.</b><p class="muted">'+esc(message)+'</p><div class="actions"><button class="btn" onclick="start()">↻ Thử lại</button><button class="btn gray" onclick="logout()">Đăng xuất</button></div></div>';
+}
 async function start(){
- const s=await db.auth.getSession(); user=s.data.session?.user||null;
- if(!user){login();return}
- await checkRoleAndLoad();
- db.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;if(!user){login()}else{checkRoleAndLoad()}});
+ try{
+   const s=await withTimeout(db.auth.getSession(),7000,"Phiên đăng nhập bị treo hoặc hết thời gian.");
+   user=s.data.session?.user||null;
+   if(!user){login();return}
+   await checkRoleAndLoad();
+   if(!authListener){
+     authListener=db.auth.onAuthStateChange((_e,s)=>{
+       user=s?.user||null;
+       if(!user){login()}
+       else if(_e!=="SIGNED_OUT"){setTimeout(()=>checkRoleAndLoad(),0)}
+     });
+   }
+ }catch(e){
+   console.error("Merchant start error",e);
+   try{await db.auth.signOut({scope:"local"})}catch(_){}
+   try{localStorage.removeItem(MERCHANT_STORAGE_KEY)}catch(_){}
+   user=null;
+   login("Phiên đăng nhập cũ bị lỗi. Vui lòng đăng nhập lại.");
+ }
 }
 async function checkRoleAndLoad(){
- const {data:profile,error}=await db.from("profiles").select("role,full_name").eq("id",user.id).maybeSingle();
- if(error){app.innerHTML='<div class="card"><b>Không kiểm tra được quyền.</b><p class="muted">'+esc(error.message)+'</p></div>';return}
- if(profile?.role!=="merchant"){
-   app.innerHTML='<div class="card"><h2>Tài khoản chưa có quyền Merchant</h2><p class="muted">Tài khoản hiện tại chưa được cấp role Merchant. Hãy đăng xuất và dùng tài khoản Merchant do Admin tạo.</p><button class="btn gray" onclick="logout()">Đăng xuất</button></div>';
-   return;
+ if(!user){login();return}
+ app.innerHTML='<div class="card"><b>Đang kiểm tra tài khoản Merchant...</b></div>';
+ try{
+   const r=await withTimeout(
+     db.from("profiles").select("role,full_name").eq("id",user.id).maybeSingle(),
+     7000,
+     "Không nhận được phản hồi từ Supabase khi kiểm tra quyền."
+   );
+   const profile=r.data,error=r.error;
+   if(error){showLoadError(error.message);return}
+   if(profile?.role!=="merchant"){
+     app.innerHTML='<div class="card"><h2>Tài khoản chưa có quyền Merchant</h2><p class="muted">Tài khoản hiện tại chưa được cấp role Merchant. Hãy đăng xuất và dùng tài khoản Merchant do Admin tạo.</p><button class="btn gray" onclick="logout()">Đăng xuất</button></div>';
+     return;
+   }
+   await load();
+ }catch(e){
+   console.error("Merchant role check error",e);
+   showLoadError(e.message||"Không kiểm tra được quyền Merchant.");
  }
- await load();
 }
-function login(){
- app.innerHTML='<div class="card"><h2>Đăng nhập Merchant</h2><input id="email" type="email" placeholder="Email"><input id="pass" type="password" placeholder="Mật khẩu"><button class="btn" onclick="signin()">Đăng nhập</button><div class="muted">Tài khoản phải được gán owner_id cho shop.</div></div>';
+function login(message=""){
+ app.innerHTML='<div class="card"><h2>Đăng nhập Merchant</h2><input id="email" type="email" placeholder="Email"><input id="pass" type="password" placeholder="Mật khẩu"><button class="btn" onclick="signin()">Đăng nhập</button>'+(
+   message?'<p class="muted" style="margin-top:10px">'+esc(message)+'</p>':''
+ )+'<div class="muted">Tài khoản phải có role Merchant và được Admin gán owner_id cho shop.</div></div>';
 }
 async function signin(){
- const {data,error}=await db.auth.signInWithPassword({email:document.getElementById('email').value.trim(),password:document.getElementById('pass').value});
- if(error){alert(error.message);return} user=data.user; await checkRoleAndLoad();
+ const email=document.getElementById("email")?.value.trim();
+ const password=document.getElementById("pass")?.value||"";
+ if(!email||!password){alert("Nhập email và mật khẩu.");return}
+ try{
+   try{await withTimeout(db.auth.signOut({scope:"local"}),3000,"RESET_TIMEOUT")}catch(_){}
+   try{localStorage.removeItem(MERCHANT_STORAGE_KEY)}catch(_){}
+   const r=await withTimeout(db.auth.signInWithPassword({email,password}),10000,"Đăng nhập quá thời gian chờ.");
+   if(r.error){alert(r.error.message);return}
+   user=r.data.user;
+   await checkRoleAndLoad();
+ }catch(e){
+   alert(e.message||"Không đăng nhập được.");
+ }
 }
-async function logout(){await db.auth.signOut();user=null;login()}
+async function logout(){
+ try{if(merchantRealtime)await db.removeChannel(merchantRealtime)}catch(_){}
+ merchantRealtime=null;
+ try{if(authListener?.data?.subscription)authListener.data.subscription.unsubscribe()}catch(_){}
+ authListener=null;
+ try{await withTimeout(db.auth.signOut({scope:"local"}),3000,"LOGOUT_TIMEOUT")}catch(e){console.warn("Merchant logout:",e)}
+ try{localStorage.removeItem(MERCHANT_STORAGE_KEY)}catch(_){}
+ user=null;
+ login("Đã đăng xuất. Bạn có thể đăng nhập lại bằng tài khoản Merchant.");
+}
 async function load(){
- const {data,error}=await db.from("shops").select("id,name,address,phone,is_active").eq("owner_id",user.id).order("name");
- if(error){app.innerHTML='<div class="card">Không tải được shop: '+error.message+'</div>';return}
- shops=data||[];
- if(!shops.length){app.innerHTML='<div class="card"><b>Chưa có shop được gán cho tài khoản này.</b><p class="muted">Admin cần đặt shops.owner_id = user.id.</p></div>';return}
- const ids=shops.map(x=>x.id);
- if(merchantRealtime)await db.removeChannel(merchantRealtime);
- merchantRealtime=db.channel("nago-merchant-orders")
-   .on("postgres_changes",{event:"*",schema:"public",table:"orders"},payload=>{
-     if(ids.includes(payload.new?.shop_id)||ids.includes(payload.old?.shop_id))load();
-   }).subscribe();
- const {data:orders,error:oe}=await db.from("orders").select("id,shop_id,status,subtotal,delivery_fee,discount,total,payment_method,payment_status,created_at,address:user_addresses(label,recipient_name,phone,address_line),items:order_items(product_name,quantity,unit_price,line_total)").in("shop_id",ids).order("created_at",{ascending:false}).limit(50);
- if(oe){app.innerHTML='<div class="card">Không tải được đơn: '+oe.message+'</div>';return}
- render(orders||[]);
+ try{
+   const r=await withTimeout(
+     db.from("shops").select("id,name,address,phone,is_active").eq("owner_id",user.id).order("name"),
+     8000,
+     "Tải danh sách shop quá thời gian chờ."
+   );
+   const data=r.data,error=r.error;
+   if(error){showLoadError("Không tải được shop: "+error.message);return}
+   shops=data||[];
+   if(!shops.length){
+     app.innerHTML='<div class="card"><b>Chưa có shop được gán cho tài khoản này.</b><p class="muted">Admin cần dùng chức năng gán shop để đặt chủ shop cho tài khoản Merchant.</p><button class="btn gray" onclick="logout()">Đăng xuất</button></div>';
+     return;
+   }
+   const ids=shops.map(x=>x.id);
+   if(merchantRealtime)try{await db.removeChannel(merchantRealtime)}catch(_){}
+   merchantRealtime=db.channel("nago-merchant-orders-"+user.id)
+     .on("postgres_changes",{event:"*",schema:"public",table:"orders"},payload=>{
+       if(ids.includes(payload.new?.shop_id)||ids.includes(payload.old?.shop_id))setTimeout(()=>load(),0);
+     }).subscribe();
+   const r2=await withTimeout(
+     db.from("orders").select("id,shop_id,status,subtotal,delivery_fee,discount,total,payment_method,payment_status,created_at,address:user_addresses(label,recipient_name,phone,address_line),items:order_items(product_name,quantity,unit_price,line_total)").in("shop_id",ids).order("created_at",{ascending:false}).limit(50),
+     10000,
+     "Tải danh sách đơn quá thời gian chờ."
+   );
+   const orders=r2.data,oe=r2.error;
+   if(oe){showLoadError("Không tải được đơn: "+oe.message);return}
+   render(orders||[]);
+ }catch(e){
+   console.error("Merchant load error",e);
+   showLoadError(e.message||"Không tải được dữ liệu Merchant.");
+ }
 }
 function render(orders){
  const count=s=>orders.filter(o=>o.status===s).length;
