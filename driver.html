@@ -14,10 +14,18 @@ input,select{width:100%;padding:12px;border:1px solid var(--b);border-radius:10p
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const db=window.supabase.createClient("https://rnyymflpnidkgetmdwwx.supabase.co","sb_publishable_qe7GaF__Mab7MCu6pMbhTg_MzLdiChx");
-let user=null,online=false;const app=document.getElementById("app");
+let user=null,online=false,driverRealtime=null;const app=document.getElementById("app");
 const labels={ready_for_pickup:"Chờ tài xế",driver_assigned:"Đã nhận đơn",picked_up:"Đã lấy hàng",delivering:"Đang giao",delivered:"Đã giao"};
 const money=n=>new Intl.NumberFormat("vi-VN").format(Number(n)||0)+"đ";
-async function start(){const s=await db.auth.getSession();user=s.data.session?.user||null;if(!user)return login();await profile();await load()}
+function startDriverRealtime(){
+ if(driverRealtime)db.removeChannel(driverRealtime);
+ driverRealtime=db.channel("nago-driver-orders")
+   .on("postgres_changes",{event:"*",schema:"public",table:"orders"},payload=>{
+     const status=payload.new?.status;
+     if(status==="ready_for_pickup"||payload.new?.driver_id===user?.id||payload.old?.driver_id===user?.id)load();
+   }).subscribe();
+}
+async function start(){const s=await db.auth.getSession();user=s.data.session?.user||null;if(!user)return login();await profile();startDriverRealtime();await load()}
 function login(){app.innerHTML='<div class="card"><h2>Đăng nhập tài xế</h2><input id="email" type="email" placeholder="Email"><input id="pass" type="password" placeholder="Mật khẩu"><button class="btn" onclick="signin()">Đăng nhập</button></div>'}
 async function signin(){const {data,error}=await db.auth.signInWithPassword({email:email.value.trim(),password:pass.value});if(error)return alert(error.message);user=data.user;await profile();await load()}
 async function profile(){
