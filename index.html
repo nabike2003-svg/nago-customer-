@@ -445,7 +445,7 @@ async function verifyEmailOtpAndRegister(){
     const msg={EXPIRED:'Mã đã hết hạn. Hãy gửi mã mới.',TOO_MANY_ATTEMPTS:'Mã đã bị khóa. Hãy gửi mã mới.',INVALID_OTP:'Mã xác thực không đúng.',NOT_FOUND:'Mã không tồn tại hoặc đã hết hiệu lực.'}[v?.error_code]||'Mã xác thực không hợp lệ.';
     return toast(msg);
   }
-  const {data,error}=await nagoSupabase.auth.signUp({email,password,options:{data:{full_name:name,phone}});
+  const {data,error}=await nagoSupabase.auth.signUp({email,password,options:{data:{full_name:name,phone}}});
   if(error){
     if(/already registered|already been registered/i.test(error.message))return toast('Gmail này đã có tài khoản. Hãy đăng nhập.');
     return toast(error.message);
